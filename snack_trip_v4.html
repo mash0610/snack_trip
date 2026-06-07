@@ -530,7 +530,7 @@ async function fetchSnackCount(station) {
     const body = {
       includedTypes: ['bar','night_club'],
       locationRestriction: {
-        circle: { center: { latitude: coords.lat, longitude: coords.lng }, radius: 1000 }
+        circle: { center: { latitude: coords.lat, longitude: coords.lng }, radius: 2000 }
       },
       maxResultCount: 20
     };
@@ -557,7 +557,7 @@ async function fetchSnackDetails(station) {
     const body = {
       includedTypes: ['bar','night_club'],
       locationRestriction: {
-        circle: { center: { latitude: coords.lat, longitude: coords.lng }, radius: 1000 }
+        circle: { center: { latitude: coords.lat, longitude: coords.lng }, radius: 2000 }
       },
       maxResultCount: 20,
       languageCode: 'ja'
