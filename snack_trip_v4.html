@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>スナック巡り旅🍶</title>
+<meta name="theme-color" content="#003d5c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="スナック旅">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-deep:  #003d5c;
+    --card:     rgba(255,255,255,0.92);
+    --accent:   #e85d3a;
+    --gold:     #d4920a;
+    --teal:     #007f7f;
+    --blue:     #0077aa;
+    --text:     #0d2d3d;
+    --text-sub: #3a6070;
+    --muted:    #6a9ab0;
+    --on-dark:  #e8f6ff;
+    --on-dark-muted: #8dcae0;
+    --border:   rgba(0,100,150,0.15);
+    --shadow:   0 4px 20px rgba(0,40,70,0.18);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg-deep); color: var(--text); font-family: 'Noto Sans JP', sans-serif; min-height: 100vh; overflow-x: hidden; }
+  .bg-layer {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background: linear-gradient(180deg, #001f33 0%, #003d5c 18%, #00608a 38%, #0093c4 58%, #00bcd4 75%, #26d0ce 88%, #40e0d0 100%);
+  }
+  .bg-shimmer {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background: radial-gradient(ellipse at 25% 30%, rgba(255,255,255,0.07) 0%, transparent 40%),
+                radial-gradient(ellipse at 75% 10%, rgba(100,220,255,0.10) 0%, transparent 35%);
+  }
+  .wave-bar { position: fixed; bottom: 52px; left: 0; right: 0; z-index: 0; height: 56px; pointer-events: none; overflow: hidden; opacity: 0.35; }
+  .wave-bar svg { width: 200%; animation: wave-scroll 9s linear infinite; }
+  @keyframes wave-scroll { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+  .container { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding: 0 16px 80px; }
+
+  .header { padding: 28px 0 18px; text-align: center; }
+  .header-title { font-family: 'Zen Kaku Gothic New', sans-serif; font-size: 28px; font-weight: 900; letter-spacing: 0.06em; color: #ffffff; text-shadow: 0 2px 16px rgba(0,180,220,0.5), 0 1px 3px rgba(0,0,0,0.3); }
+  .header-sub { font-size: 11px; color: var(--on-dark-muted); margin-top: 5px; letter-spacing: 0.10em; }
+
+  /* APIキー入力 */
+  .api-setup {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 16px; padding: 16px; margin-bottom: 16px;
+  }
+  .api-setup-title { font-size: 12px; font-weight: 700; color: var(--on-dark); margin-bottom: 8px; }
+  .api-input-row { display: flex; gap: 8px; }
+  .api-input {
+    flex: 1; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 8px; color: #fff; font-size: 12px; padding: 8px 10px;
+    font-family: 'Noto Sans JP', sans-serif;
+  }
+  .api-input::placeholder { color: rgba(255,255,255,0.5); }
+  .api-input:focus { outline: none; border-color: rgba(255,255,255,0.6); }
+  .api-save-btn {
+    background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 8px; color: #fff; font-size: 12px; font-weight: 700;
+    padding: 8px 14px; cursor: pointer; white-space: nowrap;
+    font-family: 'Noto Sans JP', sans-serif; transition: all 0.2s;
+  }
+  .api-save-btn:hover { background: rgba(255,255,255,0.35); }
+  .api-status { font-size: 11px; margin-top: 6px; }
+  .api-status.ok { color: #5eecd8; }
+  .api-status.ng { color: #ffaaaa; }
+
+  .budget-bar { background: var(--card); border-radius: 18px; padding: 13px 18px; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow); }
+  .budget-label { font-size: 10px; color: var(--muted); letter-spacing: 0.06em; font-weight: 700; }
+  .budget-amount { font-size: 20px; font-weight: 700; color: var(--gold); }
+  .budget-sub { font-size: 10px; color: var(--muted); margin-top: 1px; }
+  .budget-right { text-align: right; }
+  .progress-wrap { flex: 1; margin: 0 14px; }
+  .progress-track { height: 6px; background: rgba(0,100,150,0.12); border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #00b09b, #00c6a7); transition: width 0.5s ease; }
+
+  .section { margin-bottom: 20px; }
+  .section-title { font-size: 10px; font-weight: 700; color: var(--on-dark-muted); letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 9px; padding-left: 2px; display: flex; align-items: center; gap: 7px; }
+  .section-title::before { content: ''; display: block; width: 3px; height: 11px; background: rgba(255,255,255,0.5); border-radius: 2px; }
+
+  .card { background: var(--card); border-radius: 18px; padding: 16px; margin-bottom: 10px; box-shadow: var(--shadow); border: none; }
+
+  .people-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
+  .people-btn { background: rgba(0,100,150,0.08); border: 1.5px solid rgba(0,120,180,0.18); border-radius: 10px; padding: 10px 0; text-align: center; cursor: pointer; transition: all 0.2s; color: var(--text-sub); font-size: 14px; font-weight: 700; }
+  .people-btn:hover, .people-btn.active { background: var(--blue); border-color: var(--blue); color: #fff; transform: scale(1.04); }
+
+  /* 駅カード */
+  .station-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .station-card {
+    background: rgba(0,100,150,0.06); border: 1.5px solid rgba(0,120,180,0.18);
+    border-radius: 12px; padding: 10px; text-align: center; cursor: pointer;
+    transition: all 0.2s; position: relative; overflow: hidden;
+  }
+  .station-card.selected { border-color: var(--teal); background: rgba(0,127,127,0.10); transform: scale(1.02); }
+  .station-card.loading { opacity: 0.6; }
+  .station-emoji { font-size: 18px; }
+  .station-name { font-size: 13px; font-weight: 700; color: var(--text); margin-top: 3px; }
+  .station-line { font-size: 10px; color: var(--muted); }
+  .station-count { font-size: 11px; font-weight: 700; margin-top: 4px; }
+  .station-count.high { color: var(--accent); }
+  .station-count.mid { color: var(--gold); }
+  .station-count.low { color: var(--muted); }
+  .station-fare { font-size: 10px; color: var(--gold); margin-top: 2px; font-weight: 700; }
+
+  /* ルーレット */
+  .spin-btn {
+    width: 100%; background: linear-gradient(135deg, #0077aa, #00a8d6);
+    color: #fff; border: none; border-radius: 12px; padding: 14px;
+    font-size: 15px; font-weight: 700; cursor: pointer;
+    font-family: 'Zen Kaku Gothic New', sans-serif; letter-spacing: 0.06em;
+    transition: transform 0.15s, opacity 0.15s; box-shadow: 0 4px 14px rgba(0,120,180,0.35);
+  }
+  .spin-btn:hover { transform: scale(1.02); }
+  .spin-btn:active { transform: scale(0.97); opacity: 0.85; }
+  .spin-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+  .result-box { background: rgba(0,127,127,0.08); border: 1.5px solid rgba(0,127,127,0.28); border-radius: 12px; padding: 13px 15px; margin-top: 11px; display: none; }
+  .result-box.show { display: block; }
+  .result-dest { font-family: 'Zen Kaku Gothic New', sans-serif; font-size: 22px; font-weight: 900; color: var(--teal); letter-spacing: 0.05em; margin-bottom: 5px; }
+  .result-info { font-size: 12px; color: var(--text-sub); line-height: 1.8; white-space: pre-line; }
+  .result-train { margin-top: 8px; font-size: 12px; font-weight: 700; background: rgba(212,146,10,0.12); color: var(--gold); border-radius: 8px; padding: 5px 10px; display: inline-block; }
+
+  .expense-list { display: flex; flex-direction: column; gap: 7px; }
+  .expense-item { display: flex; align-items: center; justify-content: space-between; background: rgba(0,100,150,0.05); border-radius: 10px; padding: 9px 12px; border: 1px solid rgba(0,100,150,0.08); }
+  .expense-name { font-size: 13px; color: var(--text); font-weight: 500; }
+  .expense-label { font-size: 10px; color: var(--muted); }
+  .expense-amount { font-size: 14px; font-weight: 700; color: var(--gold); }
+  .expense-input { background: rgba(0,100,150,0.07); border: 1.5px solid rgba(0,120,180,0.20); border-radius: 8px; color: var(--text); font-size: 14px; font-weight: 700; width: 88px; text-align: right; padding: 4px 8px; font-family: 'Noto Sans JP', sans-serif; }
+  .expense-input:focus { outline: none; border-color: var(--blue); }
+  .total-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 12px 0; border-top: 1px solid var(--border); margin-top: 6px; }
+  .total-label { font-size: 13px; font-weight: 700; color: var(--muted); }
+  .total-remain { font-size: 24px; font-weight: 900; color: var(--teal); }
+  .total-remain.warn { color: var(--accent); }
+
+  /* スナックカード（APIデータ） */
+  .snack-card { background: var(--card); border-radius: 14px; padding: 13px 14px; margin-bottom: 9px; box-shadow: var(--shadow); }
+  .snack-header { display: flex; align-items: flex-start; gap: 10px; }
+  .snack-num { width: 24px; height: 24px; border-radius: 7px; background: rgba(232,93,58,0.15); color: var(--accent); font-size: 12px; font-weight: 900; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .snack-name { font-size: 13px; font-weight: 700; color: var(--text); }
+  .snack-address { font-size: 10px; color: var(--muted); margin-top: 2px; }
+  .snack-rating { font-size: 11px; color: var(--gold); margin-top: 2px; font-weight: 700; }
+  .snack-footer { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+  .map-link { font-size: 11px; font-weight: 700; color: var(--blue); background: rgba(0,119,170,0.08); border: 1px solid rgba(0,119,170,0.2); border-radius: 6px; padding: 4px 10px; text-decoration: none; }
+  .map-link:hover { background: rgba(0,119,170,0.15); }
+  .checkin-badge { margin-left: auto; font-size: 10px; padding: 3px 9px; border-radius: 99px; font-weight: 700; cursor: pointer; border: 1.5px solid rgba(0,100,150,0.22); color: var(--muted); background: transparent; transition: all 0.2s; flex-shrink: 0; }
+  .checkin-badge.done { background: rgba(0,127,127,0.12); color: var(--teal); border-color: var(--teal); }
+
+  .loading-msg { text-align: center; padding: 24px 0; color: var(--muted); font-size: 13px; }
+  .loading-spinner { font-size: 24px; animation: spin 1s linear infinite; display: inline-block; margin-bottom: 8px; }
+  @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+
+  .train-info { background: rgba(212,146,10,0.07); border: 1.5px solid rgba(212,146,10,0.22); border-radius: 12px; padding: 13px 15px; }
+  .train-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; }
+  .train-row + .train-row { border-top: 1px solid rgba(0,0,0,0.06); }
+  .train-name { font-size: 12px; color: var(--text-sub); }
+  .train-time { font-size: 16px; font-weight: 700; color: var(--gold); }
+
+  .memo-card { background: var(--card); border-radius: 14px; padding: 13px 14px; margin-bottom: 9px; box-shadow: var(--shadow); }
+  .memo-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .memo-title { font-size: 13px; font-weight: 700; color: var(--text); }
+  .memo-time { font-size: 10px; color: var(--muted); }
+  .memo-input { width: 100%; background: rgba(0,100,150,0.05); border: 1.5px solid rgba(0,120,180,0.15); border-radius: 8px; color: var(--text); font-size: 12px; padding: 8px 10px; font-family: 'Noto Sans JP', sans-serif; resize: none; margin-top: 4px; line-height: 1.6; }
+  .memo-input:focus { outline: none; border-color: var(--blue); }
+  .memo-input::placeholder { color: var(--muted); }
+
+  .add-btn { width: 100%; background: rgba(255,255,255,0.18); border: 1.5px dashed rgba(255,255,255,0.40); border-radius: 12px; padding: 11px; color: var(--on-dark); font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; font-family: 'Noto Sans JP', sans-serif; margin-top: 4px; }
+  .add-btn:hover { background: rgba(255,255,255,0.28); }
+
+  .warikan-result { background: rgba(0,127,127,0.08); border: 1.5px solid rgba(0,127,127,0.22); border-radius: 14px; padding: 15px 16px; margin-top: 10px; }
+  .warikan-per { font-size: 30px; font-weight: 900; color: var(--teal); }
+  .warikan-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .person-row { display: flex; align-items: center; justify-content: space-between; background: rgba(0,100,150,0.05); border-radius: 10px; padding: 9px 12px; margin-bottom: 6px; border: 1px solid rgba(0,100,150,0.08); }
+  .person-name { font-size: 13px; font-weight: 700; color: var(--text); }
+  .person-paid { font-size: 13px; color: var(--gold); font-weight: 700; }
+  .person-diff { font-size: 11px; padding: 2px 8px; border-radius: 99px; font-weight: 700; }
+  .diff-pos { background: rgba(0,127,127,0.12); color: var(--teal); }
+  .diff-neg { background: rgba(232,93,58,0.12); color: var(--accent); }
+  .diff-zero { background: rgba(0,0,0,0.06); color: var(--muted); }
+
+  .tab-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: rgba(0,30,50,0.96); backdrop-filter: blur(16px); border-top: 1px solid rgba(255,255,255,0.10); display: flex; z-index: 99; }
+  .tab-btn { flex: 1; padding: 9px 0 11px; display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; border: none; background: none; color: rgba(255,255,255,0.38); transition: color 0.2s; }
+  .tab-btn.active { color: #40e0d0; }
+  .tab-icon { font-size: 18px; }
+  .tab-label { font-size: 9px; letter-spacing: 0.06em; color: inherit; }
+
+  .page { display: none; }
+  .page.active { display: block; }
+  .highlight-pulse { animation: pulse 0.5s ease-out; }
+  @keyframes pulse { 0%{transform:scale(1)} 40%{transform:scale(1.03)} 100%{transform:scale(1)} }
+  .rating-row { display: flex; gap: 4px; margin-top: 5px; }
+  .star { font-size: 20px; cursor: pointer; opacity: 0.25; transition: opacity 0.15s; }
+  .star.on { opacity: 1; }
+
+  /* スナック件数バッジ */
+  .count-badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 99px; margin-left: 4px; }
+  .count-high { background: rgba(232,93,58,0.15); color: var(--accent); }
+  .count-mid { background: rgba(212,146,10,0.15); color: var(--gold); }
+  .count-low { background: rgba(0,100,150,0.10); color: var(--muted); }
+
+  /* 沿線選択タブ */
+  .line-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+  .line-tab { flex: 1; padding: 8px 0; text-align: center; font-size: 11px; font-weight: 700; border-radius: 10px; cursor: pointer; transition: all 0.2s; border: 1.5px solid rgba(255,255,255,0.2); color: var(--on-dark-muted); background: rgba(255,255,255,0.08); }
+  .line-tab.active { background: rgba(255,255,255,0.22); border-color: rgba(255,255,255,0.45); color: #fff; }
+</style>
+</head>
+<body>
+<div class="bg-layer"></div>
+<div class="bg-shimmer"></div>
+<div class="wave-bar">
+  <svg viewBox="0 0 1440 56" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0,28 C180,56 360,0 540,28 C720,56 900,0 1080,28 C1260,56 1440,0 1440,28 L1440,56 L0,56 Z" fill="#5eecd8"/>
+    <path d="M0,36 C200,10 400,50 600,36 C800,22 1000,52 1200,36 C1350,24 1440,38 1440,36 L1440,56 L0,56 Z" fill="#8dd4f0" opacity="0.6"/>
+  </svg>
+</div>
+
+<div class="container">
+  <div class="header">
+    <div class="header-title">🍶 スナック巡り旅</div>
+    <div class="header-sub">🌊 16:00 岡山駅集合 ／ 日帰りプラン ⛵</div>
+  </div>
+
+  <!-- APIキー設定 -->
+  <div class="api-setup" id="api-setup">
+    <div class="api-setup-title">🔑 Google Places APIキーを入力してください</div>
+    <div class="api-input-row">
+      <input class="api-input" id="api-key-input" type="text" placeholder="AIza..." />
+      <button class="api-save-btn" onclick="saveApiKey()">保存</button>
+    </div>
+    <div class="api-status" id="api-status"></div>
+  </div>
+
+  <!-- 予算バー -->
+  <div class="budget-bar">
+    <div>
+      <div class="budget-label">一人予算</div>
+      <div class="budget-amount" id="remain-top">¥20,000</div>
+      <div class="budget-sub" id="remain-sub">残り全額</div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:100%"></div></div>
+    </div>
+    <div class="budget-right">
+      <div class="budget-label">使用済み</div>
+      <div class="budget-amount" style="color:var(--accent)" id="used-top">¥0</div>
+      <div class="budget-sub" id="people-top">3人</div>
+    </div>
+  </div>
+
+  <!-- ===== HOME ===== -->
+  <div id="page-home" class="page active">
+
+    <div class="section">
+      <div class="section-title">参加人数</div>
+      <div class="card">
+        <div class="people-grid">
+          <button class="people-btn" data-n="1" onclick="setPeople(1)">1人</button>
+          <button class="people-btn" data-n="2" onclick="setPeople(2)">2人</button>
+          <button class="people-btn active" data-n="3" onclick="setPeople(3)">3人</button>
+          <button class="people-btn" data-n="4" onclick="setPeople(4)">4人</button>
+        </div>
+        <div id="name-inputs" style="margin-top:12px; display:flex; flex-direction:column; gap:6px;"></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">沿線を選ぶ</div>
+      <div class="line-tabs">
+        <div class="line-tab active" onclick="selectLine('sanyo')">🚄 山陽本線</div>
+        <div class="line-tab" onclick="selectLine('marine')">🌊 マリンライナー</div>
+        <div class="line-tab" onclick="selectLine('all')">🎲 全路線</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">駅別スナック件数 <span id="fetch-status" style="font-size:10px;color:var(--on-dark-muted);margin-left:4px;"></span></div>
+      <div class="card">
+        <div id="station-grid-wrap">
+          <div class="loading-msg">APIキーを入力すると<br>各駅のスナック件数をリアルタイム取得します</div>
+        </div>
+        <button class="spin-btn" id="spin-btn" onclick="spinRoulette()" style="margin-top:12px;">🎲 ルーレットを回す！</button>
+        <div class="result-box" id="result-box">
+          <div style="font-size:10px; color:var(--muted); margin-bottom:3px;">今日の目的地は…</div>
+          <div class="result-dest" id="result-dest">-</div>
+          <div class="result-info" id="result-info"></div>
+          <div class="result-train" id="result-train"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">本日のスケジュール</div>
+      <div class="card">
+        <div class="expense-list">
+          <div class="expense-item"><div><div class="expense-name">🚃 岡山出発</div><div class="expense-label">新幹線・快速</div></div><div class="expense-amount">16:10頃</div></div>
+          <div class="expense-item"><div><div class="expense-name">🍜 現地で夕食</div><div class="expense-label">居酒屋など</div></div><div class="expense-amount">17:30〜</div></div>
+          <div class="expense-item"><div><div class="expense-name">🍶 スナック1軒目</div><div class="expense-label">チャージ＋2杯</div></div><div class="expense-amount">19:30〜</div></div>
+          <div class="expense-item"><div><div class="expense-name">🍸 スナックはしご</div><div class="expense-label">2〜3軒</div></div><div class="expense-amount">21:00〜</div></div>
+          <div class="expense-item"><div><div class="expense-name">🚃 岡山へ帰宅</div><div class="expense-label">⚠️ 終電注意！</div></div><div class="expense-amount">23:00前</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /page-home -->
+
+  <!-- ===== BUDGET ===== -->
+  <div id="page-budget" class="page">
+    <div class="section">
+      <div class="section-title">支出を記録（一人あたり）</div>
+      <div class="card">
+        <div class="expense-list">
+          <div class="expense-item"><div><div class="expense-name">🚃 交通費（往復）</div><div class="expense-label">自動計算</div></div><div class="expense-amount" id="fare-display">¥0</div></div>
+          <div class="expense-item"><div><div class="expense-name">🍜 夕食</div></div><input class="expense-input" id="exp-dinner" type="number" value="" placeholder="0" oninput="updateBudget()"></div>
+          <div class="expense-item"><div><div class="expense-name">🍶 スナック1軒目</div></div><input class="expense-input" id="exp-s1" type="number" value="" placeholder="0" oninput="updateBudget()"></div>
+          <div class="expense-item"><div><div class="expense-name">🍸 スナック2軒目</div></div><input class="expense-input" id="exp-s2" type="number" value="" placeholder="0" oninput="updateBudget()"></div>
+          <div class="expense-item"><div><div class="expense-name">🎤 スナック3軒目</div></div><input class="expense-input" id="exp-s3" type="number" value="" placeholder="0" oninput="updateBudget()"></div>
+          <div class="expense-item"><div><div class="expense-name">🚕 タクシー等</div></div><input class="expense-input" id="exp-taxi" type="number" value="" placeholder="0" oninput="updateBudget()"></div>
+        </div>
+        <div class="total-row"><div class="total-label">一人残り予算</div><div class="total-remain" id="remain-main">¥20,000</div></div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">割り勘計算</div>
+      <div class="card">
+        <div id="warikan-inputs"></div>
+        <div class="warikan-result" id="warikan-result" style="display:none;">
+          <div style="font-size:10px; color:var(--muted); margin-bottom:4px;">一人あたり合計</div>
+          <div class="warikan-per" id="warikan-per">¥0</div>
+          <div class="warikan-label" id="warikan-label"></div>
+          <div style="margin-top:12px; display:flex; flex-direction:column; gap:6px;" id="warikan-detail"></div>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">スナック1軒の目安</div>
+      <div class="card">
+        <div class="expense-list">
+          <div class="expense-item"><div><div class="expense-name">チャージ</div></div><div class="expense-amount">¥500〜1,000</div></div>
+          <div class="expense-item"><div><div class="expense-name">ドリンク 2〜3杯</div></div><div class="expense-amount">¥1,500〜2,500</div></div>
+          <div class="expense-item"><div><div class="expense-name">1軒合計目安</div></div><div class="expense-amount" style="color:var(--accent)">¥2,000〜3,500</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SNACK ===== -->
+  <div id="page-snack" class="page">
+    <div class="section">
+      <div class="section-title" id="snack-area-title">スナック候補</div>
+      <div id="snack-list">
+        <div class="loading-msg">ホームでルーレットを回すと<br>リアルタイムでスナックを検索します</div>
+      </div>
+      <div id="checkin-section" style="display:none;">
+        <div class="section-title" style="margin-top:16px;">✅ 訪問済み</div>
+        <div id="checkin-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MEMO ===== -->
+  <div id="page-memo" class="page">
+    <div class="section">
+      <div class="section-title">旅の思い出メモ</div>
+      <div id="memo-list"></div>
+      <button class="add-btn" onclick="addMemo()">＋ メモを追加する</button>
+    </div>
+    <div class="section">
+      <div class="section-title">今日のハイライト</div>
+      <div class="card">
+        <div style="font-size:12px; color:var(--muted); margin-bottom:8px;">一番良かったスナックは？</div>
+        <div id="highlight-options"></div>
+        <div style="font-size:12px; color:var(--muted); margin-top:12px; margin-bottom:4px;">旅の評価</div>
+        <div class="rating-row" id="rating-stars">
+          <span class="star" onclick="setRating(1)">⭐</span>
+          <span class="star" onclick="setRating(2)">⭐</span>
+          <span class="star" onclick="setRating(3)">⭐</span>
+          <span class="star" onclick="setRating(4)">⭐</span>
+          <span class="star" onclick="setRating(5)">⭐</span>
+        </div>
+        <div id="rating-msg" style="font-size:12px; color:var(--teal); margin-top:6px; display:none;"></div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">次回の行先候補メモ</div>
+      <div class="card"><textarea class="memo-input" id="next-memo" rows="3" placeholder="次はここに行きたい、など自由に…"></textarea></div>
+    </div>
+  </div>
+
+  <!-- ===== TRAIN ===== -->
+  <div id="page-train" class="page">
+    <div class="section">
+      <div class="section-title">終電情報（岡山方面）</div>
+      <div class="card">
+        <div id="train-content-default" style="text-align:center; padding:20px 0; color:var(--muted);"><div style="font-size:13px;">ルーレットで目的地を決めると<br>終電情報が表示されます</div></div>
+        <div id="train-content-dest" style="display:none;"></div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">撤収カウントダウン</div>
+      <div class="card">
+        <div style="text-align:center; padding:10px 0;">
+          <div style="font-size:11px; color:var(--muted); margin-bottom:6px;">スナックを出るべき時間まで</div>
+          <div style="font-size:44px; font-weight:900; font-family:'Zen Kaku Gothic New',sans-serif; color:var(--teal);" id="countdown-display">--:--:--</div>
+          <div style="font-size:11px; color:var(--muted); margin-top:4px;">撤収目安：<span id="alarm-time-text">未設定</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">現在時刻</div>
+      <div class="card" style="text-align:center; padding:14px;">
+        <div style="font-size:32px; font-weight:900; font-family:'Zen Kaku Gothic New',sans-serif; color:var(--blue);" id="clock-display">--:--:--</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="showPage('home',this)"><span class="tab-icon">🗾</span><span class="tab-label">ホーム</span></button>
+  <button class="tab-btn" onclick="showPage('budget',this)"><span class="tab-icon">💰</span><span class="tab-label">予算</span></button>
+  <button class="tab-btn" onclick="showPage('snack',this)"><span class="tab-icon">🍶</span><span class="tab-label">スナック</span></button>
+  <button class="tab-btn" onclick="showPage('memo',this)"><span class="tab-icon">📝</span><span class="tab-label">メモ</span></button>
+  <button class="tab-btn" onclick="showPage('train',this)"><span class="tab-icon">🚃</span><span class="tab-label">終電</span></button>
+</div>
+
+<script>
+const BUDGET = 20000;
+let people = 3;
+let selectedStation = null;
+let apiKey = '';
+let stationSnackCounts = {};
+let snackResults = [];
+let checkedIn = {};
+let memos = [];
+let rating = 0;
+let countdownTarget = null;
+let names = ['Aさん','Bさん','Cさん'];
+let currentLine = 'all';
+
+const RATING_MSGS = ['','まあまあかな…','そこそこ楽しかった！','良い旅だった！','最高だった！！','神旅！また絶対行く！！🎉'];
+
+// 沿線駅データ（岡山起点）
+const LINES = {
+  sanyo: {
+    name: '山陽本線',
+    stations: [
+      { id:'okayama', name:'岡山', emoji:'🏙️', fare:0, fareLabel:'起点', time:'0分', alarm:'', trainInfo:null },
+      { id:'nishiokayama', name:'西岡山', emoji:'🚉', fare:190, fareLabel:'往復¥380', time:'5分', alarm:'', trainInfo:null },
+      { id:'higashiokayama', name:'東岡山', emoji:'🚉', fare:240, fareLabel:'往復¥480', time:'8分', alarm:'', trainInfo:null },
+      { id:'saidaiji', name:'西大寺', emoji:'🏮', fare:330, fareLabel:'往復¥660', time:'15分', alarm:'', trainInfo:null },
+      { id:'bizen_imbe', name:'備前片上', emoji:'🏭', fare:590, fareLabel:'往復¥1,180', time:'30分', alarm:'', trainInfo:null },
+      { id:'aioi', name:'相生', emoji:'🚉', fare:990, fareLabel:'往復¥1,980', time:'50分', alarm:'22:40', trainInfo:{lines:['🚃 山陽本線（相生→岡山）最終 23:08'], taxi:'¥8,000〜12,000（4人割 ¥2,000〜3,000）'} },
+      { id:'himeji', name:'姫路', emoji:'🏯', fare:1520, fareLabel:'往復¥3,040', time:'約55分', alarm:'22:30', trainInfo:{lines:['🚄 こだま（姫路→岡山） 23:06','🚃 山陽本線 快速（最終） 22:52'], taxi:'¥20,000〜25,000（4人割 ¥5,000〜6,300）'} },
+    ]
+  },
+  sanyo_west: {
+    name: '山陽本線（西）',
+    stations: [
+      { id:'okayama', name:'岡山', emoji:'🏙️', fare:0, fareLabel:'起点', time:'0分', alarm:'', trainInfo:null },
+      { id:'niigata', name:'庭瀬', emoji:'🚉', fare:190, fareLabel:'往復¥380', time:'6分', alarm:'', trainInfo:null },
+      { id:'takahashi', name:'中庄', emoji:'🚉', fare:240, fareLabel:'往復¥480', time:'10分', alarm:'', trainInfo:null },
+      { id:'kurashiki', name:'倉敷', emoji:'🏭', fare:330, fareLabel:'往復¥660', time:'15分', alarm:'22:50', trainInfo:{lines:['🚃 山陽本線（倉敷→岡山）最終 23:20'], taxi:'¥4,000〜6,000（4人割 ¥1,000〜1,500）'} },
+      { id:'shin_kurashiki', name:'新倉敷', emoji:'🚉', fare:480, fareLabel:'往復¥960', time:'22分', alarm:'22:45', trainInfo:{lines:['🚃 山陽本線（新倉敷→岡山）最終 23:10'], taxi:'¥6,000〜9,000（4人割 ¥1,500〜2,300）'} },
+      { id:'kasaoka', name:'笠岡', emoji:'🌸', fare:740, fareLabel:'往復¥1,480', time:'35分', alarm:'22:30', trainInfo:{lines:['🚃 山陽本線（笠岡→岡山）最終 22:58'], taxi:'¥10,000〜14,000（4人割 ¥2,500〜3,500）'} },
+      { id:'fukuyama', name:'福山', emoji:'🌹', fare:1320, fareLabel:'往復¥2,640', time:'約40分', alarm:'22:10', trainInfo:{lines:['🚄 こだま（福山→岡山） 23:14','🚃 山陽本線（最終） 22:42'], taxi:'¥15,000〜18,000（4人割 ¥3,800〜4,500）'} },
+    ]
+  },
+  marine: {
+    name: 'マリンライナー',
+    stations: [
+      { id:'okayama', name:'岡山', emoji:'🏙️', fare:0, fareLabel:'起点', time:'0分', alarm:'', trainInfo:null },
+      { id:'kojima', name:'児島', emoji:'🌉', fare:580, fareLabel:'往復¥1,160', time:'25分', alarm:'22:50', trainInfo:{lines:['🚢 マリンライナー（児島→岡山）最終 23:18'], taxi:'¥7,000〜10,000（4人割 ¥1,800〜2,500）'} },
+      { id:'utazu', name:'宇多津', emoji:'⛩️', fare:840, fareLabel:'往復¥1,680', time:'35分', alarm:'22:40', trainInfo:{lines:['🚢 マリンライナー（宇多津→岡山）最終 23:05'], taxi:'¥10,000〜14,000（4人割 ¥2,500〜3,500）'} },
+      { id:'marugame', name:'丸亀', emoji:'🏯', fare:840, fareLabel:'往復¥1,680', time:'38分', alarm:'22:35', trainInfo:{lines:['🚢 マリンライナー（丸亀→岡山）最終 23:02'], taxi:'¥11,000〜15,000（4人割 ¥2,800〜3,800）'} },
+      { id:'tadotsu', name:'多度津', emoji:'⛵', fare:840, fareLabel:'往復¥1,680', time:'42分', alarm:'22:30', trainInfo:{lines:['🚢 マリンライナー（多度津→岡山）最終 22:58'], taxi:'¥12,000〜16,000（4人割 ¥3,000〜4,000）'} },
+      { id:'takamatsu', name:'高松', emoji:'🌊', fare:1680, fareLabel:'往復¥3,360', time:'約60分', alarm:'21:50', trainInfo:{lines:['🚢 マリンライナー（高松→岡山）最終 22:38','🚃 高松→児島 23:10（児島でタクシー）'], taxi:'高松→岡山は非現実的。終電厳守！'} },
+    ]
+  }
+};
+
+function getAllStations() {
+  const all = [];
+  const seen = new Set();
+  ['sanyo','sanyo_west','marine'].forEach(lineKey => {
+    LINES[lineKey].stations.forEach(s => {
+      if(!seen.has(s.id) && s.id !== 'okayama') {
+        seen.add(s.id);
+        all.push({...s, lineKey});
+      }
+    });
+  });
+  return all;
+}
+
+function getActiveStations() {
+  if(currentLine === 'all') return getAllStations();
+  if(currentLine === 'sanyo') return [...LINES.sanyo.stations, ...LINES.sanyo_west.stations].filter((s,i,arr) => s.id!=='okayama' && arr.findIndex(x=>x.id===s.id)===i);
+  if(currentLine === 'marine') return LINES.marine.stations.filter(s=>s.id!=='okayama');
+  return getAllStations();
+}
+
+function saveApiKey() {
+  const val = document.getElementById('api-key-input').value.trim();
+  if(!val.startsWith('AIza')) {
+    document.getElementById('api-status').textContent = '❌ APIキーの形式が正しくありません（AIzaで始まる文字列）';
+    document.getElementById('api-status').className = 'api-status ng';
+    return;
+  }
+  apiKey = val;
+  localStorage.setItem('snack_trip_api_key', val);
+  document.getElementById('api-status').textContent = '✅ 保存しました！次回から入力不要です';
+  document.getElementById('api-status').className = 'api-status ok';
+  document.getElementById('api-setup').style.background = 'rgba(0,127,127,0.15)';
+  document.getElementById('api-setup').style.border = '1px solid rgba(0,127,127,0.35)';
+  setTimeout(() => { document.getElementById('api-setup').style.display = 'none'; }, 2000);
+  fetchAllStationCounts();
+}
+
+async function fetchSnackCount(station) {
+  const coords = getStationCoords(station.id);
+  if(!coords) return 0;
+  try {
+    const url = `https://places.googleapis.com/v1/places:searchNearby`;
+    const body = {
+      includedTypes: ['bar','night_club'],
+      locationRestriction: {
+        circle: { center: { latitude: coords.lat, longitude: coords.lng }, radius: 1000 }
+      },
+      maxResultCount: 20
+    };
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': apiKey,
+        'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.rating,places.googleMapsUri,places.id'
+      },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if(data.places) return data.places.length;
+    return 0;
+  } catch(e) { return 0; }
+}
+
+async function fetchSnackDetails(station) {
+  const coords = getStationCoords(station.id);
+  if(!coords) return [];
+  try {
+    const url = `https://places.googleapis.com/v1/places:searchNearby`;
+    const body = {
+      includedTypes: ['bar','night_club'],
+      locationRestriction: {
+        circle: { center: { latitude: coords.lat, longitude: coords.lng }, radius: 1000 }
+      },
+      maxResultCount: 20,
+      languageCode: 'ja'
+    };
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': apiKey,
+        'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.rating,places.googleMapsUri,places.id'
+      },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    return data.places || [];
+  } catch(e) { return []; }
+}
+
+async function fetchAllStationCounts() {
+  const stations = getAllStations();
+  document.getElementById('fetch-status').textContent = '取得中…';
+  document.getElementById('station-grid-wrap').innerHTML = '<div class="loading-msg"><div class="loading-spinner">🌊</div><br>各駅のスナック件数を取得中…</div>';
+
+  for(const s of stations) {
+    const count = await fetchSnackCount(s);
+    stationSnackCounts[s.id] = count;
+  }
+  document.getElementById('fetch-status').textContent = '取得完了！';
+  renderStationGrid();
+}
+
+function renderStationGrid() {
+  const stations = getActiveStations();
+  const wrap = document.getElementById('station-grid-wrap');
+  if(!stations.length) { wrap.innerHTML = '<div class="loading-msg">該当駅なし</div>'; return; }
+
+  let html = '<div class="station-grid">';
+  stations.forEach(s => {
+    const count = stationSnackCounts[s.id] ?? null;
+    const countClass = count === null ? '' : count >= 10 ? 'high' : count >= 5 ? 'mid' : 'low';
+    const countText = count === null ? (apiKey ? '取得中' : '－') : count + '件';
+    const isSelected = selectedStation && selectedStation.id === s.id;
+    html += `
+      <div class="station-card ${isSelected?'selected':''}" onclick="selectStation('${s.id}')">
+        <div class="station-emoji">${s.emoji}</div>
+        <div class="station-name">${s.name}</div>
+        <div class="station-fare">${s.fareLabel}</div>
+        <div class="station-count ${countClass}">${countText ? '🍶 '+countText : ''}</div>
+      </div>`;
+  });
+  html += '</div>';
+  wrap.innerHTML = html;
+}
+
+function selectStation(id) {
+  const all = getAllStations();
+  const st = all.find(s=>s.id===id);
+  if(!st) return;
+  selectedStation = st;
+  renderStationGrid();
+}
+
+function selectLine(line) {
+  currentLine = line;
+  document.querySelectorAll('.line-tab').forEach((t,i)=>{
+    t.classList.toggle('active', ['sanyo','marine','all'][i]===line);
+  });
+  renderStationGrid();
+}
+
+function spinRoulette() {
+  const stations = getActiveStations().filter(s => s.id !== 'okayama');
+  if(!stations.length) { alert('駅が選択できません'); return; }
+
+  const btn = document.getElementById('spin-btn');
+  btn.textContent = '🎲 抽選中...'; btn.disabled = true;
+
+  // スナック件数で重み付け
+  const weights = stations.map(s => {
+    const c = stationSnackCounts[s.id] ?? 1;
+    return Math.max(1, c);
+  });
+  const total = weights.reduce((a,b)=>a+b,0);
+
+  let count = 0;
+  const iv = setInterval(() => {
+    const tmp = stations[count % stations.length];
+    selectedStation = tmp;
+    renderStationGrid();
+    count++;
+    if(count >= 18) {
+      clearInterval(iv);
+      // 重み付き抽選
+      let r = Math.random() * total;
+      let winner = stations[0];
+      for(let i=0;i<stations.length;i++){
+        r -= weights[i];
+        if(r <= 0){ winner = stations[i]; break; }
+      }
+      selectedStation = winner;
+      renderStationGrid();
+
+      document.getElementById('result-dest').textContent = '📍 '+ winner.name +'！';
+      document.getElementById('result-info').textContent = '所要'+ winner.time +' ／ '+ winner.fareLabel +'\nスナック件数：' + (stationSnackCounts[winner.id] ?? '不明') + '件';
+      document.getElementById('result-train').textContent = winner.trainInfo ? '🚃 終電: ' + winner.trainInfo.lines[0].split('）')[1]?.trim() || winner.trainInfo.lines[0] : '時刻表を確認してください';
+      const box = document.getElementById('result-box');
+      box.classList.add('show','highlight-pulse');
+      setTimeout(()=>box.classList.remove('highlight-pulse'),600);
+
+      document.getElementById('fare-display').textContent = '¥' + (winner.fare*2).toLocaleString();
+      updateBudget();
+      renderTrainInfo(winner);
+
+      // スナック詳細を取得
+      if(apiKey) fetchAndRenderSnacks(winner);
+
+      btn.textContent = '🎲 もう一度回す'; btn.disabled = false;
+    }
+  }, 110);
+}
+
+async function fetchAndRenderSnacks(station) {
+  document.getElementById('snack-area-title').textContent = station.name + ' のスナック（検索中…）';
+  document.getElementById('snack-list').innerHTML = '<div class="loading-msg"><div class="loading-spinner">🌊</div><br>スナックを検索中…</div>';
+
+  const places = await fetchSnackDetails(station);
+  snackResults = places;
+  renderSnackList(station);
+}
+
+function renderSnackList(station) {
+  const list = document.getElementById('snack-list');
+  document.getElementById('snack-area-title').textContent = station.name + ' のスナック（' + snackResults.length + '件）';
+
+  if(!snackResults.length) {
+    list.innerHTML = '<div class="loading-msg">スナックが見つかりませんでした<br>エリアを広げて探してみてください</div>';
+    return;
+  }
+
+  list.innerHTML = snackResults.map((p, i) => {
+    const id = 'place_' + i;
+    const name = p.displayName?.text || '名称不明';
+    const addr = p.formattedAddress || '';
+    const rating = p.rating ? '⭐ ' + p.rating : '';
+    const mapsUrl = p.googleMapsUri || 'https://maps.google.com/?q=' + encodeURIComponent(name);
+    const done = checkedIn[id] || false;
+    return `
+      <div class="snack-card" id="scard-${id}">
+        <div class="snack-header">
+          <div class="snack-num">${i+1}</div>
+          <div style="flex:1">
+            <div class="snack-name">${name}</div>
+            <div class="snack-address">${addr}</div>
+            <div class="snack-rating">${rating}</div>
+          </div>
+        </div>
+        <div class="snack-footer">
+          <a class="map-link" href="${mapsUrl}" target="_blank">📍 Google Mapsで開く</a>
+          <button class="checkin-badge ${done?'done':''}" id="ci-${id}" onclick="toggleCheckin('${id}','${name}')">
+            ${done?'✅ 訪問済':'チェックイン'}
+          </button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function toggleCheckin(id, name) {
+  checkedIn[id] = !checkedIn[id];
+  const btn = document.getElementById('ci-'+id);
+  if(btn) { btn.classList.toggle('done', checkedIn[id]); btn.textContent = checkedIn[id]?'✅ 訪問済':'チェックイン'; }
+  renderCheckinList();
+}
+
+function renderCheckinList() {
+  const section = document.getElementById('checkin-section');
+  const list = document.getElementById('checkin-list');
+  const done = Object.entries(checkedIn).filter(([k,v])=>v);
+  if(!done.length){section.style.display='none';return;}
+  section.style.display='block';
+  list.innerHTML = done.map(([id])=>{
+    const i = parseInt(id.replace('place_',''));
+    const p = snackResults[i];
+    const name = p?.displayName?.text || id;
+    return `<div class="expense-item"><div class="expense-name">✅ ${name}</div></div>`;
+  }).join('');
+}
+
+function renderTrainInfo(station) {
+  document.getElementById('train-content-default').style.display = 'none';
+  const el = document.getElementById('train-content-dest');
+  el.style.display = 'block';
+  if(!station.trainInfo) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:10px 0;">この駅の終電情報は要確認です</div>';
+    document.getElementById('alarm-time-text').textContent = '未設定';
+    countdownTarget = null;
+    return;
+  }
+  const ti = station.trainInfo;
+  el.innerHTML = `
+    <div class="train-info">
+      ${ti.lines.map(l=>`<div class="train-row"><div class="train-name">${l.split('）')[0]}）</div><div class="train-time">${l.split('）')[1]?.trim()||''}</div></div>`).join('')}
+    </div>
+    <div style="margin-top:10px; font-size:11px; color:var(--muted); line-height:1.7;">${station.alarm ? station.alarm+'までにスナックを出ること。': ''}</div>
+    <div style="margin-top:8px; background:rgba(232,93,58,0.08); border-radius:10px; padding:9px 11px; font-size:11px; color:var(--accent);">🚕 ${ti.taxi}</div>`;
+
+  document.getElementById('alarm-time-text').textContent = station.alarm || '未設定';
+  if(station.alarm) {
+    const [h,m] = station.alarm.split(':').map(Number);
+    const now = new Date();
+    countdownTarget = new Date(now.getFullYear(),now.getMonth(),now.getDate(),h,m,0);
+  } else {
+    countdownTarget = null;
+  }
+}
+
+// 駅座標
+function getStationCoords(id) {
+  const coords = {
+    okayama:       {lat:34.6551,lng:133.9195},
+    niisiokayama:  {lat:34.6497,lng:133.8958},
+    higashiokayama:{lat:34.6636,lng:133.9657},
+    saidaiji:      {lat:34.6699,lng:134.0176},
+    bizen_imbe:    {lat:34.7472,lng:134.1775},
+    aioi:          {lat:34.8149,lng:134.4668},
+    himeji:        {lat:34.8274,lng:134.6918},
+    niigata:       {lat:34.6473,lng:133.8699},
+    takahashi:     {lat:34.6307,lng:133.8180},
+    kurashiki:     {lat:34.5850,lng:133.7714},
+    shin_kurashiki:{lat:34.5692,lng:133.7165},
+    kasaoka:       {lat:34.5062,lng:133.5078},
+    fukuyama:      {lat:34.4818,lng:133.3625},
+    kojima:        {lat:34.4897,lng:133.8120},
+    utazu:         {lat:34.3190,lng:133.8244},
+    marugame:      {lat:34.2916,lng:133.7981},
+    tadotsu:       {lat:34.2701,lng:133.7541},
+    takamatsu:     {lat:34.3498,lng:134.0481},
+  };
+  return coords[id] || null;
+}
+
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='budget') renderWarikan();
+  if(name==='memo') renderHighlightOptions();
+}
+
+function setPeople(n) {
+  people = n;
+  document.querySelectorAll('.people-btn').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.n)===n));
+  document.getElementById('people-top').textContent = n+'人';
+  names = [];
+  for(let i=0;i<n;i++) names.push(['Aさん','Bさん','Cさん','Dさん'][i]);
+  renderNameInputs();
+  updateBudget();
+}
+
+function renderNameInputs() {
+  const c = document.getElementById('name-inputs');
+  c.innerHTML = '';
+  for(let i=0;i<people;i++){
+    const inp = document.createElement('input');
+    inp.style='width:100%;background:rgba(0,100,150,0.06);border:1.5px solid rgba(0,120,180,0.18);border-radius:8px;color:var(--text);font-size:13px;padding:7px 10px;font-family:inherit;';
+    inp.placeholder = ['Aさんの名前','Bさんの名前','Cさんの名前','Dさんの名前'][i];
+    inp.value = names[i];
+    const idx=i;
+    inp.oninput=()=>{ names[idx]=inp.value||(['Aさん','Bさん','Cさん','Dさん'][idx]); };
+    c.appendChild(inp);
+  }
+}
+
+function updateBudget() {
+  const fare = selectedStation ? selectedStation.fare*2 : 0;
+  const dinner = parseInt(document.getElementById('exp-dinner').value)||0;
+  const s1 = parseInt(document.getElementById('exp-s1').value)||0;
+  const s2 = parseInt(document.getElementById('exp-s2').value)||0;
+  const s3 = parseInt(document.getElementById('exp-s3').value)||0;
+  const taxi = parseInt(document.getElementById('exp-taxi').value)||0;
+  const used = fare+dinner+s1+s2+s3+taxi;
+  const remain = BUDGET-used;
+  const pct = Math.max(0,Math.min(100,(remain/BUDGET)*100));
+  document.getElementById('remain-top').textContent='¥'+Math.max(0,remain).toLocaleString();
+  document.getElementById('remain-main').textContent='¥'+Math.max(0,remain).toLocaleString();
+  document.getElementById('used-top').textContent='¥'+used.toLocaleString();
+  document.getElementById('progress-fill').style.width=pct+'%';
+  document.getElementById('remain-sub').textContent=remain>=0?'残り':'予算オーバー！';
+  document.getElementById('remain-top').style.color=remain<3000?'var(--accent)':'var(--gold)';
+  document.getElementById('remain-main').classList.toggle('warn',remain<3000);
+  renderWarikan();
+}
+
+function renderWarikan(){
+  const fare = selectedStation ? selectedStation.fare*2 : 0;
+  const total=(parseInt(document.getElementById('exp-dinner').value)||0)+(parseInt(document.getElementById('exp-s1').value)||0)+(parseInt(document.getElementById('exp-s2').value)||0)+(parseInt(document.getElementById('exp-s3').value)||0)+(parseInt(document.getElementById('exp-taxi').value)||0)+fare;
+  const wi=document.getElementById('warikan-inputs');
+  wi.innerHTML='';
+  for(let i=0;i<people;i++){
+    wi.innerHTML+=`<div class="expense-item"><div class="expense-name">${names[i]||'Aさん'}</div><input class="expense-input" id="wk-${i}" type="number" placeholder="立替額" oninput="calcWarikan()"></div>`;
+  }
+  if(total>0){
+    document.getElementById('warikan-result').style.display='block';
+    document.getElementById('warikan-per').textContent='¥'+Math.ceil(total/people).toLocaleString();
+    document.getElementById('warikan-label').textContent='合計 ¥'+total.toLocaleString()+'  '+people+'人で割り勘';
+    calcWarikan();
+  } else {
+    document.getElementById('warikan-result').style.display='none';
+  }
+}
+
+function calcWarikan(){
+  const fare = selectedStation ? selectedStation.fare*2 : 0;
+  const total=(parseInt(document.getElementById('exp-dinner').value)||0)+(parseInt(document.getElementById('exp-s1').value)||0)+(parseInt(document.getElementById('exp-s2').value)||0)+(parseInt(document.getElementById('exp-s3').value)||0)+(parseInt(document.getElementById('exp-taxi').value)||0)+fare;
+  if(!total)return;
+  const per=Math.ceil(total/people);
+  document.getElementById('warikan-per').textContent='¥'+per.toLocaleString();
+  document.getElementById('warikan-label').textContent='合計 ¥'+total.toLocaleString()+'  '+people+'人で割り勘';
+  const detail=document.getElementById('warikan-detail');
+  detail.innerHTML='';
+  for(let i=0;i<people;i++){
+    const paid=parseInt(document.getElementById('wk-'+i)?.value)||0;
+    const diff=paid-per;
+    const cls=diff>0?'diff-pos':diff<0?'diff-neg':'diff-zero';
+    const label=diff>0?'+¥'+diff.toLocaleString()+'受取':diff<0?'¥'+Math.abs(diff).toLocaleString()+'払う':'精算なし';
+    detail.innerHTML+=`<div class="person-row"><div class="person-name">${names[i]||'Aさん'}</div><div class="person-paid">立替 ¥${paid.toLocaleString()}</div><div class="person-diff ${cls}">${label}</div></div>`;
+  }
+}
+
+function addMemo(){
+  const now=new Date();
+  const t=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+  memos.push({time:t,text:'',id:Date.now()});
+  renderMemos();
+}
+
+function renderMemos(){
+  const list=document.getElementById('memo-list');
+  list.innerHTML='';
+  if(!memos.length){ list.innerHTML='<div style="text-align:center;padding:20px 0;color:var(--on-dark-muted);font-size:13px;">メモはまだありません</div>'; return; }
+  memos.forEach((m,i)=>{
+    const div=document.createElement('div');
+    div.className='memo-card';
+    div.innerHTML=`<div class="memo-header"><div class="memo-title">📝 メモ ${i+1}</div><div style="display:flex;align-items:center;gap:6px;"><div class="memo-time">${m.time}</div><button onclick="deleteMemo(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;">×</button></div></div><textarea class="memo-input" rows="3" placeholder="スナックの名前、ママの話…" oninput="updateMemo(${i},this.value)">${m.text}</textarea>`;
+    list.appendChild(div);
+  });
+}
+
+function updateMemo(i,val){ memos[i].text=val; }
+function deleteMemo(i){ memos.splice(i,1); renderMemos(); }
+
+function renderHighlightOptions(){
+  const el=document.getElementById('highlight-options');
+  const done=Object.entries(checkedIn).filter(([k,v])=>v);
+  if(!done.length){ el.innerHTML='<div style="font-size:12px;color:var(--muted);">スナックにチェックインするとここに表示されます</div>'; return; }
+  el.innerHTML='';
+  done.forEach(([id])=>{
+    const i=parseInt(id.replace('place_',''));
+    const p=snackResults[i];
+    const name=p?.displayName?.text||id;
+    const btn=document.createElement('button');
+    btn.style='width:100%;background:rgba(0,100,150,0.05);border:1px solid var(--border);border-radius:10px;padding:9px 12px;color:var(--text);font-size:13px;text-align:left;cursor:pointer;transition:all 0.2s;font-family:inherit;margin-bottom:6px;';
+    btn.textContent='🍶 '+name;
+    btn.onclick=()=>{
+      document.querySelectorAll('#highlight-options button').forEach(b=>{ b.style.background='rgba(0,100,150,0.05)'; b.style.borderColor='var(--border)'; });
+      btn.style.background='rgba(0,127,127,0.12)'; btn.style.borderColor='var(--teal)';
+    };
+    el.appendChild(btn);
+  });
+}
+
+function setRating(n){
+  rating=n;
+  document.querySelectorAll('.star').forEach((s,i)=>s.classList.toggle('on',i<n));
+  const msg=document.getElementById('rating-msg');
+  msg.textContent=RATING_MSGS[n]; msg.style.display='block';
+}
+
+function updateClock(){
+  const now=new Date();
+  const pad=n=>n.toString().padStart(2,'0');
+  document.getElementById('clock-display').textContent=pad(now.getHours())+':'+pad(now.getMinutes())+':'+pad(now.getSeconds());
+  if(countdownTarget){
+    let diff=Math.floor((countdownTarget-now)/1000);
+    if(diff<0){ document.getElementById('countdown-display').textContent='時間です！'; document.getElementById('countdown-display').style.color='var(--accent)'; }
+    else {
+      const h=Math.floor(diff/3600),m=Math.floor((diff%3600)/60),s=diff%60;
+      document.getElementById('countdown-display').textContent=pad(h)+':'+pad(m)+':'+pad(s);
+      document.getElementById('countdown-display').style.color=diff<1800?'var(--accent)':'var(--teal)';
+    }
+  }
+}
+
+setPeople(3);
+updateBudget();
+renderMemos();
+renderStationGrid();
+setInterval(updateClock,1000);
+updateClock();
+
+// localStorageからAPIキーを自動読み込み
+const savedKey = localStorage.getItem('snack_trip_api_key');
+if(savedKey) {
+  apiKey = savedKey;
+  document.getElementById('api-setup').style.display = 'none';
+  fetchAllStationCounts();
+}
+
+// Service Worker登録（PWA）
+if('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
