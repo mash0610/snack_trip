@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>スナック巡り旅🍶</title>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-deep:  #003d5c;
+    --bg-mid:   #005f8a;
+    --bg-surf:  #00a8d6;
+    --card:     rgba(255,255,255,0.92);
+    --card-sub: rgba(255,255,255,0.78);
+    --accent:   #e85d3a;
+    --gold:     #d4920a;
+    --teal:     #007f7f;
+    --blue:     #0077aa;
+    --text:     #0d2d3d;
+    --text-sub: #3a6070;
+    --muted:    #6a9ab0;
+    --on-dark:  #e8f6ff;
+    --on-dark-muted: #8dcae0;
+    --border:   rgba(0,100,150,0.15);
+    --shadow:   0 4px 20px rgba(0,40,70,0.18);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg-deep);
+    color: var(--text);
+    font-family: 'Noto Sans JP', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ===== 背景：沖縄の海グラデーション ===== */
+  .bg-layer {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      linear-gradient(180deg,
+        #001f33 0%,
+        #003d5c 18%,
+        #00608a 38%,
+        #0093c4 58%,
+        #00bcd4 75%,
+        #26d0ce 88%,
+        #40e0d0 100%
+      );
+  }
+  /* 光の屈折・波紋 */
+  .bg-shimmer {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(ellipse at 25% 30%, rgba(255,255,255,0.07) 0%, transparent 40%),
+      radial-gradient(ellipse at 75% 10%, rgba(100,220,255,0.10) 0%, transparent 35%),
+      radial-gradient(ellipse at 50% 80%, rgba(0,180,200,0.12) 0%, transparent 45%);
+  }
+
+  /* ===== 波アニメ ===== */
+  .wave-bar {
+    position: fixed; bottom: 52px; left: 0; right: 0; z-index: 0;
+    height: 56px; pointer-events: none; overflow: hidden; opacity: 0.35;
+  }
+  .wave-bar svg { width: 200%; animation: wave-scroll 9s linear infinite; }
+  @keyframes wave-scroll { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+
+  .container {
+    position: relative; z-index: 1;
+    max-width: 480px; margin: 0 auto;
+    padding: 0 16px 80px;
+  }
+
+  /* ===== ヘッダー ===== */
+  .header { padding: 28px 0 18px; text-align: center; }
+  .header-title {
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    font-size: 28px; font-weight: 900; letter-spacing: 0.06em;
+    color: #ffffff;
+    text-shadow: 0 2px 16px rgba(0,180,220,0.5), 0 1px 3px rgba(0,0,0,0.3);
+  }
+  .header-sub {
+    font-size: 11px; color: var(--on-dark-muted);
+    margin-top: 5px; letter-spacing: 0.10em;
+  }
+
+  /* ===== 予算バー ===== */
+  .budget-bar {
+    background: var(--card);
+    border-radius: 18px;
+    padding: 13px 18px;
+    margin-bottom: 18px;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: var(--shadow);
+  }
+  .budget-label { font-size: 10px; color: var(--muted); letter-spacing: 0.06em; font-weight: 700; }
+  .budget-amount { font-size: 20px; font-weight: 700; color: var(--gold); }
+  .budget-sub { font-size: 10px; color: var(--muted); margin-top: 1px; }
+  .budget-right { text-align: right; }
+  .progress-wrap { flex: 1; margin: 0 14px; }
+  .progress-track {
+    height: 6px; background: rgba(0,100,150,0.12);
+    border-radius: 99px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; border-radius: 99px;
+    background: linear-gradient(90deg, #00b09b, #00c6a7);
+    transition: width 0.5s ease;
+  }
+
+  /* ===== セクション ===== */
+  .section { margin-bottom: 20px; }
+  .section-title {
+    font-size: 10px; font-weight: 700; color: var(--on-dark-muted);
+    letter-spacing: 0.16em; text-transform: uppercase;
+    margin-bottom: 9px; padding-left: 2px;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .section-title::before {
+    content: ''; display: block; width: 3px; height: 11px;
+    background: rgba(255,255,255,0.5); border-radius: 2px;
+  }
+
+  /* ===== カード（白ベース） ===== */
+  .card {
+    background: var(--card);
+    border-radius: 18px;
+    padding: 16px;
+    margin-bottom: 10px;
+    box-shadow: var(--shadow);
+    border: none;
+  }
+
+  /* ===== 人数選択 ===== */
+  .people-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
+  .people-btn {
+    background: rgba(0,100,150,0.08);
+    border: 1.5px solid rgba(0,120,180,0.18);
+    border-radius: 10px; padding: 10px 0;
+    text-align: center; cursor: pointer;
+    transition: all 0.2s; color: var(--text-sub);
+    font-size: 14px; font-weight: 700;
+  }
+  .people-btn:hover, .people-btn.active {
+    background: var(--blue); border-color: var(--blue);
+    color: #fff; transform: scale(1.04);
+  }
+
+  /* ===== ルーレット ===== */
+  .roulette-targets { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 7px; margin-bottom: 12px; }
+  .target-card {
+    background: rgba(0,100,150,0.06);
+    border: 1.5px solid rgba(0,120,180,0.18);
+    border-radius: 12px; padding: 10px;
+    text-align: center; cursor: pointer; transition: all 0.2s;
+  }
+  .target-card.selected {
+    border-color: var(--teal); background: rgba(0,127,127,0.10);
+    transform: scale(1.03);
+  }
+  .target-card .dest-name { font-size: 13px; font-weight: 700; color: var(--text); margin-top: 4px; }
+  .target-card .dest-time { font-size: 10px; color: var(--muted); }
+  .target-card .dest-fare { font-size: 10px; color: var(--gold); margin-top: 2px; font-weight: 700; }
+  .dest-emoji { font-size: 20px; }
+
+  .spin-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #0077aa, #00a8d6);
+    color: #fff; border: none; border-radius: 12px;
+    padding: 14px; font-size: 15px; font-weight: 700;
+    cursor: pointer; font-family: 'Zen Kaku Gothic New', sans-serif;
+    letter-spacing: 0.06em; transition: transform 0.15s, opacity 0.15s;
+    box-shadow: 0 4px 14px rgba(0,120,180,0.35);
+  }
+  .spin-btn:hover { transform: scale(1.02); }
+  .spin-btn:active { transform: scale(0.97); opacity: 0.85; }
+  .spin-btn:disabled { opacity: 0.55; }
+
+  .result-box {
+    background: rgba(0,127,127,0.08);
+    border: 1.5px solid rgba(0,127,127,0.28);
+    border-radius: 12px; padding: 13px 15px;
+    margin-top: 11px; display: none;
+  }
+  .result-box.show { display: block; }
+  .result-dest {
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    font-size: 22px; font-weight: 900;
+    color: var(--teal); letter-spacing: 0.05em; margin-bottom: 5px;
+  }
+  .result-info { font-size: 12px; color: var(--text-sub); line-height: 1.8; white-space: pre-line; }
+  .result-train {
+    margin-top: 8px; font-size: 12px; font-weight: 700;
+    background: rgba(212,146,10,0.12); color: var(--gold);
+    border-radius: 8px; padding: 5px 10px; display: inline-block;
+  }
+
+  /* ===== 支出リスト ===== */
+  .expense-list { display: flex; flex-direction: column; gap: 7px; }
+  .expense-item {
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(0,100,150,0.05);
+    border-radius: 10px; padding: 9px 12px;
+    border: 1px solid rgba(0,100,150,0.08);
+  }
+  .expense-name { font-size: 13px; color: var(--text); font-weight: 500; }
+  .expense-label { font-size: 10px; color: var(--muted); }
+  .expense-amount { font-size: 14px; font-weight: 700; color: var(--gold); }
+  .expense-input {
+    background: rgba(0,100,150,0.07);
+    border: 1.5px solid rgba(0,120,180,0.20);
+    border-radius: 8px; color: var(--text);
+    font-size: 14px; font-weight: 700;
+    width: 88px; text-align: right;
+    padding: 4px 8px;
+    font-family: 'Noto Sans JP', sans-serif;
+  }
+  .expense-input:focus { outline: none; border-color: var(--blue); }
+  .total-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 12px 0; border-top: 1px solid var(--border); margin-top: 6px;
+  }
+  .total-label { font-size: 13px; font-weight: 700; color: var(--muted); }
+  .total-remain { font-size: 24px; font-weight: 900; color: var(--teal); }
+  .total-remain.warn { color: var(--accent); }
+
+  /* ===== スナックカード ===== */
+  .snack-card {
+    background: var(--card);
+    border-radius: 14px; padding: 13px 14px;
+    margin-bottom: 9px; display: flex; align-items: flex-start; gap: 10px;
+    box-shadow: var(--shadow);
+  }
+  .snack-num {
+    width: 24px; height: 24px; border-radius: 7px;
+    background: rgba(232,93,58,0.15); color: var(--accent);
+    font-size: 12px; font-weight: 900;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .snack-name { font-size: 13px; font-weight: 700; color: var(--text); }
+  .snack-area { font-size: 10px; color: var(--muted); margin-top: 1px; }
+  .snack-price { font-size: 10px; color: var(--gold); margin-top: 3px; font-weight: 700; }
+  .snack-note { font-size: 11px; color: var(--text-sub); margin-top: 4px; line-height: 1.65; }
+
+  .checkin-badge {
+    margin-left: auto; font-size: 10px; padding: 3px 9px;
+    border-radius: 99px; font-weight: 700; cursor: pointer;
+    border: 1.5px solid rgba(0,100,150,0.22); color: var(--muted);
+    background: transparent; transition: all 0.2s; flex-shrink: 0;
+  }
+  .checkin-badge.done {
+    background: rgba(0,127,127,0.12); color: var(--teal);
+    border-color: var(--teal);
+  }
+
+  /* ===== 終電 ===== */
+  .train-info {
+    background: rgba(212,146,10,0.07);
+    border: 1.5px solid rgba(212,146,10,0.22);
+    border-radius: 12px; padding: 13px 15px;
+  }
+  .train-row {
+    display: flex; justify-content: space-between; align-items: center; padding: 6px 0;
+  }
+  .train-row + .train-row { border-top: 1px solid rgba(0,0,0,0.06); }
+  .train-name { font-size: 12px; color: var(--text-sub); }
+  .train-time { font-size: 16px; font-weight: 700; color: var(--gold); }
+
+  /* ===== メモ ===== */
+  .memo-card {
+    background: var(--card);
+    border-radius: 14px; padding: 13px 14px;
+    margin-bottom: 9px; box-shadow: var(--shadow);
+  }
+  .memo-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .memo-title { font-size: 13px; font-weight: 700; color: var(--text); }
+  .memo-time { font-size: 10px; color: var(--muted); }
+  .memo-input {
+    width: 100%; background: rgba(0,100,150,0.05);
+    border: 1.5px solid rgba(0,120,180,0.15); border-radius: 8px;
+    color: var(--text); font-size: 12px; padding: 8px 10px;
+    font-family: 'Noto Sans JP', sans-serif; resize: none;
+    margin-top: 4px; line-height: 1.6;
+  }
+  .memo-input:focus { outline: none; border-color: var(--blue); }
+  .memo-input::placeholder { color: var(--muted); }
+
+  .add-btn {
+    width: 100%;
+    background: rgba(255,255,255,0.18);
+    border: 1.5px dashed rgba(255,255,255,0.40);
+    border-radius: 12px; padding: 11px;
+    color: var(--on-dark); font-size: 13px; font-weight: 700;
+    cursor: pointer; transition: all 0.2s;
+    font-family: 'Noto Sans JP', sans-serif; margin-top: 4px;
+  }
+  .add-btn:hover { background: rgba(255,255,255,0.28); }
+
+  /* ===== 割り勘 ===== */
+  .warikan-result {
+    background: rgba(0,127,127,0.08);
+    border: 1.5px solid rgba(0,127,127,0.22);
+    border-radius: 14px; padding: 15px 16px; margin-top: 10px;
+  }
+  .warikan-per { font-size: 30px; font-weight: 900; color: var(--teal); }
+  .warikan-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .person-row {
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(0,100,150,0.05); border-radius: 10px;
+    padding: 9px 12px; margin-bottom: 6px;
+    border: 1px solid rgba(0,100,150,0.08);
+  }
+  .person-name { font-size: 13px; font-weight: 700; color: var(--text); }
+  .person-paid { font-size: 13px; color: var(--gold); font-weight: 700; }
+  .person-diff { font-size: 11px; padding: 2px 8px; border-radius: 99px; font-weight: 700; }
+  .diff-pos { background: rgba(0,127,127,0.12); color: var(--teal); }
+  .diff-neg { background: rgba(232,93,58,0.12); color: var(--accent); }
+  .diff-zero { background: rgba(0,0,0,0.06); color: var(--muted); }
+
+  /* ===== タブバー ===== */
+  .tab-bar {
+    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 100%; max-width: 480px;
+    background: rgba(0,30,50,0.96);
+    backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(255,255,255,0.10);
+    display: flex; z-index: 99;
+  }
+  .tab-btn {
+    flex: 1; padding: 9px 0 11px;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    cursor: pointer; border: none; background: none;
+    color: rgba(255,255,255,0.38); transition: color 0.2s;
+  }
+  .tab-btn.active { color: #40e0d0; }
+  .tab-icon { font-size: 18px; }
+  .tab-label { font-size: 9px; letter-spacing: 0.06em; color: inherit; }
+
+  .page { display: none; }
+  .page.active { display: block; }
+  .highlight-pulse { animation: pulse 0.5s ease-out; }
+  @keyframes pulse { 0%{transform:scale(1)} 40%{transform:scale(1.03)} 100%{transform:scale(1)} }
+
+  .rating-row { display: flex; gap: 4px; margin-top: 5px; }
+  .star { font-size: 20px; cursor: pointer; opacity: 0.25; transition: opacity 0.15s; }
+  .star.on { opacity: 1; }
+
+  /* スケジュール行のラベルをネイビーに */
+  .sched-label { font-size: 10px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="bg-layer"></div>
+<div class="wave-bar">
+  <svg viewBox="0 0 1440 56" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0,28 C180,56 360,0 540,28 C720,56 900,0 1080,28 C1260,56 1440,0 1440,28 L1440,56 L0,56 Z" fill="#5eecd8"/>
+    <path d="M0,36 C200,10 400,50 600,36 C800,22 1000,52 1200,36 C1350,24 1440,38 1440,36 L1440,56 L0,56 Z" fill="#8dd4f0" opacity="0.6"/>
+  </svg>
+</div>
+<div class="container">
+
+  <div class="header">
+    <div class="header-title">🍶 スナック巡り旅</div>
+    <div class="header-sub">🌊 16:00 岡山駅集合 ／ 日帰りプラン ⛵</div>
+  </div>
+
+  <!-- Budget Bar (常時表示) -->
+  <div class="budget-bar">
+    <div>
+      <div class="budget-label">一人予算</div>
+      <div class="budget-amount" id="remain-top">¥20,000</div>
+      <div class="budget-sub" id="remain-sub">残り全額</div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill" style="width:100%"></div>
+      </div>
+    </div>
+    <div class="budget-right">
+      <div class="budget-label">使用済み</div>
+      <div class="budget-amount" style="color:var(--accent)" id="used-top">¥0</div>
+      <div class="budget-sub" id="people-top">3人</div>
+    </div>
+  </div>
+
+  <!-- ========= PAGE: HOME ========= -->
+  <div id="page-home" class="page active">
+
+    <div class="section">
+      <div class="section-title">参加人数</div>
+      <div class="card">
+        <div class="people-grid">
+          <button class="people-btn" data-n="1" onclick="setPeople(1)">1人</button>
+          <button class="people-btn" data-n="2" onclick="setPeople(2)">2人</button>
+          <button class="people-btn active" data-n="3" onclick="setPeople(3)">3人</button>
+          <button class="people-btn" data-n="4" onclick="setPeople(4)">4人</button>
+        </div>
+        <div id="name-inputs" style="margin-top:12px; display:flex; flex-direction:column; gap:6px;"></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">行先ルーレット</div>
+      <div class="card">
+        <div class="roulette-targets">
+          <div class="target-card" id="dest-himeji">
+            <div class="dest-emoji">🏯</div>
+            <div class="dest-name">姫路</div>
+            <div class="dest-time">約55分</div>
+            <div class="dest-fare">往復¥3,040</div>
+          </div>
+          <div class="target-card" id="dest-fukuyama">
+            <div class="dest-emoji">🌹</div>
+            <div class="dest-name">福山</div>
+            <div class="dest-time">約40分</div>
+            <div class="dest-fare">往復¥5,280</div>
+          </div>
+          <div class="target-card" id="dest-takamatsu">
+            <div class="dest-emoji">🌊</div>
+            <div class="dest-name">高松</div>
+            <div class="dest-time">約60分</div>
+            <div class="dest-fare">往復¥3,360</div>
+          </div>
+        </div>
+        <button class="spin-btn" id="spin-btn" onclick="spinRoulette()">🎲 ルーレットを回す！</button>
+        <div class="result-box" id="result-box">
+          <div style="font-size:10px; color:var(--muted); margin-bottom:3px;">今日の目的地は…</div>
+          <div class="result-dest" id="result-dest">-</div>
+          <div class="result-info" id="result-info"></div>
+          <div class="result-train" id="result-train"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">本日のスケジュール</div>
+      <div class="card">
+        <div class="expense-list">
+          <div class="expense-item"><div><div class="expense-name">🚃 岡山出発</div><div class="expense-label">新幹線・快速</div></div><div class="expense-amount">16:10頃</div></div>
+          <div class="expense-item"><div><div class="expense-name">🍜 現地で夕食</div><div class="expense-label">居酒屋など</div></div><div class="expense-amount">17:30〜</div></div>
+          <div class="expense-item"><div><div class="expense-name">🍶 スナック1軒目</div><div class="expense-label">チャージ＋2杯</div></div><div class="expense-amount">19:30〜</div></div>
+          <div class="expense-item"><div><div class="expense-name">🍸 スナックはしご</div><div class="expense-label">2〜3軒</div></div><div class="expense-amount">21:00〜</div></div>
+          <div class="expense-item"><div><div class="expense-name">🚃 岡山へ帰宅</div><div class="expense-label">⚠️ 終電注意！</div></div><div class="expense-amount">23:00前</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /page-home -->
+
+  <!-- ========= PAGE: BUDGET ========= -->
+  <div id="page-budget" class="page">
+
+    <div class="section">
+      <div class="section-title">支出を記録（一人あたり）</div>
+      <div class="card">
+        <div class="expense-list">
+          <div class="expense-item">
+            <div><div class="expense-name">🚃 交通費（往復）</div><div class="expense-label">自動計算</div></div>
+            <div class="expense-amount" id="fare-display">¥0</div>
+          </div>
+          <div class="expense-item">
+            <div><div class="expense-name">🍜 夕食</div><div class="expense-label">入力</div></div>
+            <input class="expense-input" id="exp-dinner" type="number" value="" placeholder="0" oninput="updateBudget()">
+          </div>
+          <div class="expense-item">
+            <div><div class="expense-name">🍶 スナック1軒目</div></div>
+            <input class="expense-input" id="exp-s1" type="number" value="" placeholder="0" oninput="updateBudget()">
+          </div>
+          <div class="expense-item">
+            <div><div class="expense-name">🍸 スナック2軒目</div></div>
+            <input class="expense-input" id="exp-s2" type="number" value="" placeholder="0" oninput="updateBudget()">
+          </div>
+          <div class="expense-item">
+            <div><div class="expense-name">🎤 スナック3軒目</div></div>
+            <input class="expense-input" id="exp-s3" type="number" value="" placeholder="0" oninput="updateBudget()">
+          </div>
+          <div class="expense-item">
+            <div><div class="expense-name">🚕 タクシー等</div></div>
+            <input class="expense-input" id="exp-taxi" type="number" value="" placeholder="0" oninput="updateBudget()">
+          </div>
+        </div>
+        <div class="total-row">
+          <div class="total-label">一人残り予算</div>
+          <div class="total-remain" id="remain-main">¥20,000</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 割り勘計算 -->
+    <div class="section">
+      <div class="section-title">割り勘計算</div>
+      <div class="card">
+        <div id="warikan-inputs" style="display:flex; flex-direction:column; gap:6px;"></div>
+        <div class="warikan-result" id="warikan-result" style="display:none;">
+          <div style="font-size:10px; color:var(--muted); margin-bottom:4px;">一人あたり合計</div>
+          <div class="warikan-per" id="warikan-per">¥0</div>
+          <div class="warikan-label" id="warikan-label"></div>
+          <div style="margin-top:12px; display:flex; flex-direction:column; gap:6px;" id="warikan-detail"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">スナック1軒の目安</div>
+      <div class="card">
+        <div class="expense-list">
+          <div class="expense-item"><div><div class="expense-name">チャージ</div></div><div class="expense-amount">¥500〜1,000</div></div>
+          <div class="expense-item"><div><div class="expense-name">ドリンク 2〜3杯</div></div><div class="expense-amount">¥1,500〜2,500</div></div>
+          <div class="expense-item"><div><div class="expense-name">1軒合計目安</div></div><div class="expense-amount" style="color:var(--accent)">¥2,000〜3,500</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /page-budget -->
+
+  <!-- ========= PAGE: SNACK ========= -->
+  <div id="page-snack" class="page">
+
+    <div class="section">
+      <div class="section-title" id="snack-area-title">スナック候補エリア</div>
+      <div id="snack-himeji" style="display:none"></div>
+      <div id="snack-fukuyama" style="display:none"></div>
+      <div id="snack-takamatsu" style="display:none"></div>
+      <div id="snack-default">
+        <div style="text-align:center; padding:30px 0; color:var(--muted);">
+          <div style="font-size:32px; margin-bottom:8px;">🎲</div>
+          <div style="font-size:13px;">まずホームでルーレットを回してね！</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- チェックイン済み -->
+    <div class="section" id="checkin-section" style="display:none">
+      <div class="section-title">✅ 訪問済み</div>
+      <div id="checkin-list"></div>
+    </div>
+
+  </div><!-- /page-snack -->
+
+  <!-- ========= PAGE: MEMO ========= -->
+  <div id="page-memo" class="page">
+
+    <div class="section">
+      <div class="section-title">旅の思い出メモ</div>
+      <div id="memo-list"></div>
+      <button class="add-btn" onclick="addMemo()">＋ メモを追加する</button>
+    </div>
+
+    <div class="section">
+      <div class="section-title">今日のハイライト</div>
+      <div class="card">
+        <div style="font-size:12px; color:var(--muted); margin-bottom:8px;">一番良かったスナックは？</div>
+        <div id="highlight-options" style="display:flex; flex-direction:column; gap:6px;"></div>
+        <div style="font-size:12px; color:var(--muted); margin-top:12px; margin-bottom:4px;">旅の評価</div>
+        <div class="rating-row" id="rating-stars">
+          <span class="star" onclick="setRating(1)">⭐</span>
+          <span class="star" onclick="setRating(2)">⭐</span>
+          <span class="star" onclick="setRating(3)">⭐</span>
+          <span class="star" onclick="setRating(4)">⭐</span>
+          <span class="star" onclick="setRating(5)">⭐</span>
+        </div>
+        <div id="rating-msg" style="font-size:12px; color:var(--teal); margin-top:6px; display:none;"></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">次回の行先候補メモ</div>
+      <div class="card">
+        <textarea class="memo-input" id="next-memo" rows="3" placeholder="次はここに行きたい、など自由に…"></textarea>
+      </div>
+    </div>
+
+  </div><!-- /page-memo -->
+
+  <!-- ========= PAGE: TRAIN ========= -->
+  <div id="page-train" class="page">
+
+    <div class="section">
+      <div class="section-title">終電情報（岡山方面）</div>
+      <div class="card">
+        <div id="train-content-default" style="text-align:center; padding:20px 0; color:var(--muted);">
+          <div style="font-size:13px;">ルーレットで目的地を決めると<br>終電情報が表示されます</div>
+        </div>
+        <div id="train-content-himeji" style="display:none">
+          <div class="train-info">
+            <div class="train-row"><div class="train-name">🚄 こだま（姫路→岡山）</div><div class="train-time">23:06</div></div>
+            <div class="train-row"><div class="train-name">🚃 山陽本線 快速（最終）</div><div class="train-time">22:52</div></div>
+          </div>
+          <div style="margin-top:10px; font-size:11px; color:var(--muted); line-height:1.7;">22:30までにスナックを出れば余裕あり。新幹線なら23:06まで遊べます。</div>
+          <div style="margin-top:8px; background:rgba(244,132,95,0.1); border-radius:10px; padding:9px 11px; font-size:11px; color:var(--accent);">🚕 タクシー岡山まで ¥20,000〜25,000（4人割り ¥5,000〜6,300）</div>
+        </div>
+        <div id="train-content-fukuyama" style="display:none">
+          <div class="train-info">
+            <div class="train-row"><div class="train-name">🚄 こだま（福山→岡山）</div><div class="train-time">23:14</div></div>
+            <div class="train-row"><div class="train-name">🚃 山陽本線（最終）</div><div class="train-time">22:42</div></div>
+          </div>
+          <div style="margin-top:10px; font-size:11px; color:var(--muted); line-height:1.7;">在来線は早め。新幹線なら23:14まで可能。22:10には福山駅へ向かうこと。</div>
+          <div style="margin-top:8px; background:rgba(244,132,95,0.1); border-radius:10px; padding:9px 11px; font-size:11px; color:var(--accent);">🚕 タクシー岡山まで ¥15,000〜18,000（4人割り ¥3,800〜4,500）</div>
+        </div>
+        <div id="train-content-takamatsu" style="display:none">
+          <div class="train-info">
+            <div class="train-row"><div class="train-name">🚢 マリンライナー（高松→岡山）最終</div><div class="train-time">22:38</div></div>
+            <div class="train-row"><div class="train-name">🚃 マリンライナー（高松→児島）</div><div class="train-time">23:10</div></div>
+          </div>
+          <div style="margin-top:10px; font-size:11px; color:var(--muted); line-height:1.7;">⚠️ 高松は終電が早い！22:00にはスナックを出ること推奨。</div>
+          <div style="margin-top:8px; background:rgba(244,132,95,0.1); border-radius:10px; padding:9px 11px; font-size:11px; color:var(--accent);">🚕 高松→岡山タクシーは非現実的。終電厳守！</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">撤収タイマー</div>
+      <div class="card">
+        <div style="text-align:center; padding:10px 0;">
+          <div style="font-size:11px; color:var(--muted); margin-bottom:6px;">スナックを出るべき時間まで</div>
+          <div style="font-size:44px; font-weight:900; font-family:'Zen Kaku Gothic New',sans-serif; color:var(--teal);" id="countdown-display">--:--:--</div>
+          <div style="font-size:11px; color:var(--muted); margin-top:4px;">撤収目安：<span id="alarm-time-text">未設定</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">現在時刻</div>
+      <div class="card" style="text-align:center; padding:14px;">
+        <div style="font-size:32px; font-weight:900; font-family:'Zen Kaku Gothic New',sans-serif; color:var(--blue);" id="clock-display">--:--:--</div>
+      </div>
+    </div>
+
+  </div><!-- /page-train -->
+
+</div><!-- /container -->
+
+<!-- Tab Bar -->
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="showPage('home',this)"><span class="tab-icon">🗾</span><span class="tab-label">ホーム</span></button>
+  <button class="tab-btn" onclick="showPage('budget',this)"><span class="tab-icon">💰</span><span class="tab-label">予算</span></button>
+  <button class="tab-btn" onclick="showPage('snack',this)"><span class="tab-icon">🍶</span><span class="tab-label">スナック</span></button>
+  <button class="tab-btn" onclick="showPage('memo',this)"><span class="tab-icon">📝</span><span class="tab-label">メモ</span></button>
+  <button class="tab-btn" onclick="showPage('train',this)"><span class="tab-icon">🚃</span><span class="tab-label">終電</span></button>
+</div>
+
+<script>
+const BUDGET = 20000;
+let people = 3;
+let selectedDest = null;
+let checkedIn = {};
+let memos = [];
+let rating = 0;
+let countdownTarget = null;
+
+const FARES = {himeji:1520, fukuyama:2640, takamatsu:1680};
+const DEST_NAMES = {himeji:'姫路', fukuyama:'福山', takamatsu:'高松'};
+const DEST_INFO = {
+  himeji:'所要約55分 ／ 往復 ¥3,040\n17:10頃到着予定',
+  fukuyama:'所要約40分 ／ 往復 ¥5,280\n16:50頃到着予定',
+  takamatsu:'所要約60分 ／ 往復 ¥3,360\n17:10頃到着予定'
+};
+const DEST_TRAIN = {
+  himeji:'🚄 16:10発 こだま or 16:13発 新快速',
+  fukuyama:'🚄 16:10発 のぞみ or 16:15発 山陽本線',
+  takamatsu:'🚃 16:11発 マリンライナー'
+};
+const ALARM_TIMES = {himeji:'22:30', fukuyama:'22:10', takamatsu:'21:50'};
+
+const SNACK_DATA = {
+  himeji: [
+    {name:'姫路駅前 みゆき通り周辺', area:'📍 駅南口すぐ', price:'チャージ ¥500〜 / ドリンク ¥700〜', note:'飲み屋横丁が続き、スナックが密集。初心者も入りやすい。'},
+    {name:'鷹匠町・城北スナック街', area:'📍 姫路城北側', price:'チャージ ¥700〜 / ドリンク ¥800〜', note:'カラオケ付きのスナックが多い。常連さんとの交流が楽しい。'},
+    {name:'姫路 二条通エリア', area:'📍 駅北口・二条通', price:'チャージ ¥500〜', note:'小さなビルにスナックが集まる昭和感あふれる穴場。はしごに最適。'},
+  ],
+  fukuyama: [
+    {name:'福山駅北口 スナック横丁', area:'📍 三之丸町', price:'チャージ ¥500〜 / ドリンク ¥700〜', note:'駅北口からすぐ。飲み屋ビルが密集。スナックが多くはしごしやすい。'},
+    {name:'本通り・中心商店街周辺', area:'📍 元町', price:'チャージ ¥700〜', note:'アーケード商店街の奥にスナックが点在。地元感たっぷり。'},
+    {name:'福山城下 夜の横丁', area:'📍 丸之内', price:'チャージ ¥500〜', note:'福山城そばの静かなエリア。隠れた名スナックが多い穴場ゾーン。'},
+  ],
+  takamatsu: [
+    {name:'兵庫町・常磐町スナック街', area:'📍 常磐町', price:'チャージ ¥500〜 / ドリンク ¥700〜', note:'高松最大の歓楽街。スナックの密度が高くはしごし放題。'},
+    {name:'片原町・瓦町周辺', area:'📍 片原町', price:'チャージ ¥700〜', note:'アーケード裏手。昭和レトロなスナックが現役で元気。'},
+    {name:'高松港・玉藻公園そば', area:'📍 玉藻町', price:'チャージ ¥500〜', note:'港に近い落ち着いたエリア。締めのさぬきうどんも近くで。'},
+  ]
+};
+
+const RATING_MSGS = ['','まあまあかな…','そこそこ楽しかった！','良い旅だった！','最高だった！！','神旅！また絶対行く！！🎉'];
+
+let names = ['Aさん','Bさん','Cさん'];
+
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='budget') renderWarikan();
+  if(name==='memo') renderHighlightOptions();
+}
+
+function setPeople(n) {
+  people = n;
+  document.querySelectorAll('.people-btn').forEach(b=>{
+    b.classList.toggle('active', parseInt(b.dataset.n)===n);
+  });
+  document.getElementById('people-top').textContent = n+'人';
+  names = [];
+  for(let i=0;i<n;i++) names.push(['Aさん','Bさん','Cさん','Dさん'][i]);
+  renderNameInputs();
+  updateBudget();
+}
+
+function renderNameInputs() {
+  const c = document.getElementById('name-inputs');
+  c.innerHTML = '';
+  for(let i=0;i<people;i++){
+    const inp = document.createElement('input');
+    inp.className='expense-input';
+    inp.style='width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; padding:7px 10px; font-family:inherit;';
+    inp.placeholder = ['Aさんの名前','Bさんの名前','Cさんの名前','Dさんの名前'][i];
+    inp.value = names[i];
+    const idx=i;
+    inp.oninput=()=>{ names[idx]=inp.value||(['Aさん','Bさん','Cさん','Dさん'][idx]); };
+    c.appendChild(inp);
+  }
+}
+
+function spinRoulette() {
+  const dests=['himeji','fukuyama','takamatsu'];
+  const btn=document.getElementById('spin-btn');
+  btn.textContent='🎲 抽選中...'; btn.disabled=true;
+  let count=0;
+  const iv=setInterval(()=>{
+    const tmp=dests[count%3];
+    document.querySelectorAll('.target-card').forEach(c=>c.classList.remove('selected'));
+    document.getElementById('dest-'+tmp).classList.add('selected');
+    count++;
+    if(count>=15){
+      clearInterval(iv);
+      const winner=dests[Math.floor(Math.random()*3)];
+      selectedDest=winner;
+      document.querySelectorAll('.target-card').forEach(c=>c.classList.remove('selected'));
+      document.getElementById('dest-'+winner).classList.add('selected');
+
+      document.getElementById('result-dest').textContent='📍 '+DEST_NAMES[winner]+'！';
+      document.getElementById('result-info').textContent=DEST_INFO[winner];
+      document.getElementById('result-train').textContent=DEST_TRAIN[winner];
+      const box=document.getElementById('result-box');
+      box.classList.add('show','highlight-pulse');
+      setTimeout(()=>box.classList.remove('highlight-pulse'),600);
+
+      document.getElementById('fare-display').textContent='¥'+(FARES[winner]*2).toLocaleString();
+      updateBudget();
+      renderSnackArea(winner);
+      renderTrainInfo(winner);
+
+      btn.textContent='🎲 もう一度回す'; btn.disabled=false;
+    }
+  },100);
+}
+
+function renderSnackArea(dest){
+  ['himeji','fukuyama','takamatsu'].forEach(d=>{
+    document.getElementById('snack-'+d).style.display=d===dest?'block':'none';
+  });
+  document.getElementById('snack-default').style.display='none';
+  document.getElementById('snack-area-title').textContent=DEST_NAMES[dest]+' のスナック候補';
+
+  const el=document.getElementById('snack-'+dest);
+  el.innerHTML='';
+  SNACK_DATA[dest].forEach((s,i)=>{
+    const id=dest+'_'+i;
+    const done=checkedIn[id]||false;
+    el.innerHTML+=`
+      <div class="snack-card" id="scard-${id}">
+        <div class="snack-num">${i+1}</div>
+        <div style="flex:1">
+          <div class="snack-name">${s.name}</div>
+          <div class="snack-area">${s.area}</div>
+          <div class="snack-price">${s.price}</div>
+          <div class="snack-note">${s.note}</div>
+        </div>
+        <button class="checkin-badge ${done?'done':''}" id="ci-${id}" onclick="toggleCheckin('${id}','${s.name}')">
+          ${done?'✅ 訪問済':'チェックイン'}
+        </button>
+      </div>`;
+  });
+}
+
+function toggleCheckin(id, name){
+  checkedIn[id]=!checkedIn[id];
+  const btn=document.getElementById('ci-'+id);
+  btn.classList.toggle('done',checkedIn[id]);
+  btn.textContent=checkedIn[id]?'✅ 訪問済':'チェックイン';
+  renderCheckinList();
+}
+
+function renderCheckinList(){
+  const section=document.getElementById('checkin-section');
+  const list=document.getElementById('checkin-list');
+  const done=Object.entries(checkedIn).filter(([k,v])=>v);
+  if(!done.length){section.style.display='none';return;}
+  section.style.display='block';
+  list.innerHTML=done.map(([id])=>{
+    const [dest,i]=id.split('_');
+    const s=SNACK_DATA[dest]?.[parseInt(i)];
+    return s?`<div class="expense-item"><div class="expense-name">✅ ${s.name}</div></div>`:'';
+  }).join('');
+}
+
+function renderTrainInfo(dest){
+  ['himeji','fukuyama','takamatsu'].forEach(d=>{
+    document.getElementById('train-content-'+d).style.display=d===dest?'block':'none';
+  });
+  document.getElementById('train-content-default').style.display='none';
+  const t=ALARM_TIMES[dest];
+  document.getElementById('alarm-time-text').textContent=t;
+  const [h,m]=t.split(':').map(Number);
+  const now=new Date();
+  countdownTarget=new Date(now.getFullYear(),now.getMonth(),now.getDate(),h,m,0);
+}
+
+function updateBudget(){
+  const fare=selectedDest?FARES[selectedDest]*2:0;
+  const dinner=parseInt(document.getElementById('exp-dinner').value)||0;
+  const s1=parseInt(document.getElementById('exp-s1').value)||0;
+  const s2=parseInt(document.getElementById('exp-s2').value)||0;
+  const s3=parseInt(document.getElementById('exp-s3').value)||0;
+  const taxi=parseInt(document.getElementById('exp-taxi').value)||0;
+  const used=fare+dinner+s1+s2+s3+taxi;
+  const remain=BUDGET-used;
+  const pct=Math.max(0,Math.min(100,(remain/BUDGET)*100));
+
+  document.getElementById('remain-top').textContent='¥'+Math.max(0,remain).toLocaleString();
+  document.getElementById('remain-main').textContent='¥'+Math.max(0,remain).toLocaleString();
+  document.getElementById('used-top').textContent='¥'+used.toLocaleString();
+  document.getElementById('progress-fill').style.width=pct+'%';
+  document.getElementById('remain-sub').textContent=remain>=0?'残り':'予算オーバー！';
+  document.getElementById('remain-top').style.color=remain<3000?'var(--accent)':'var(--gold)';
+  document.getElementById('remain-main').classList.toggle('warn',remain<3000);
+
+  renderWarikan();
+}
+
+function renderWarikan(){
+  const total=(parseInt(document.getElementById('exp-dinner').value)||0)+
+    (parseInt(document.getElementById('exp-s1').value)||0)+
+    (parseInt(document.getElementById('exp-s2').value)||0)+
+    (parseInt(document.getElementById('exp-s3').value)||0)+
+    (parseInt(document.getElementById('exp-taxi').value)||0)+
+    (selectedDest?FARES[selectedDest]*2:0);
+
+  const wi=document.getElementById('warikan-inputs');
+  wi.innerHTML='';
+  // simple: show per-person paid input
+  for(let i=0;i<people;i++){
+    wi.innerHTML+=`
+      <div class="expense-item">
+        <div class="expense-name">${names[i]||(['Aさん','Bさん','Cさん','Dさん'][i])}</div>
+        <input class="expense-input" id="wk-${i}" type="number" placeholder="立替額" oninput="calcWarikan()">
+      </div>`;
+  }
+  if(total>0){
+    const per=Math.ceil(total/people);
+    document.getElementById('warikan-result').style.display='block';
+    document.getElementById('warikan-per').textContent='¥'+per.toLocaleString();
+    document.getElementById('warikan-label').textContent='合計 ¥'+total.toLocaleString()+'  '+people+'人で割り勘';
+    calcWarikan();
+  } else {
+    document.getElementById('warikan-result').style.display='none';
+  }
+}
+
+function calcWarikan(){
+  const total=(parseInt(document.getElementById('exp-dinner').value)||0)+
+    (parseInt(document.getElementById('exp-s1').value)||0)+
+    (parseInt(document.getElementById('exp-s2').value)||0)+
+    (parseInt(document.getElementById('exp-s3').value)||0)+
+    (parseInt(document.getElementById('exp-taxi').value)||0)+
+    (selectedDest?FARES[selectedDest]*2:0);
+  if(!total) return;
+  const per=Math.ceil(total/people);
+  document.getElementById('warikan-per').textContent='¥'+per.toLocaleString();
+  document.getElementById('warikan-label').textContent='合計 ¥'+total.toLocaleString()+'  '+people+'人で割り勘';
+  const detail=document.getElementById('warikan-detail');
+  detail.innerHTML='';
+  for(let i=0;i<people;i++){
+    const paid=parseInt(document.getElementById('wk-'+i)?.value)||0;
+    const diff=paid-per;
+    const cls=diff>0?'diff-pos':diff<0?'diff-neg':'diff-zero';
+    const label=diff>0?'+¥'+diff.toLocaleString()+'受取':diff<0?'¥'+Math.abs(diff).toLocaleString()+'払う':'精算なし';
+    detail.innerHTML+=`
+      <div class="person-row">
+        <div class="person-name">${names[i]||(['Aさん','Bさん','Cさん','Dさん'][i])}</div>
+        <div class="person-paid">立替 ¥${paid.toLocaleString()}</div>
+        <div class="person-diff ${cls}">${label}</div>
+      </div>`;
+  }
+}
+
+function addMemo(){
+  const now=new Date();
+  const t=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+  memos.push({time:t, text:'', id:Date.now()});
+  renderMemos();
+}
+
+function renderMemos(){
+  const list=document.getElementById('memo-list');
+  list.innerHTML='';
+  if(!memos.length){
+    list.innerHTML='<div style="text-align:center;padding:20px 0;color:var(--muted);font-size:13px;">メモはまだありません</div>';
+    return;
+  }
+  memos.forEach((m,i)=>{
+    const div=document.createElement('div');
+    div.className='memo-card';
+    div.innerHTML=`
+      <div class="memo-header">
+        <div class="memo-title">📝 メモ ${i+1}</div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div class="memo-time">${m.time}</div>
+          <button onclick="deleteMemo(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;">×</button>
+        </div>
+      </div>
+      <textarea class="memo-input" rows="3" placeholder="スナックの名前、ママの話、面白かったこと…" oninput="updateMemo(${i}, this.value)">${m.text}</textarea>`;
+    list.appendChild(div);
+  });
+}
+
+function updateMemo(i, val){ memos[i].text=val; }
+function deleteMemo(i){ memos.splice(i,1); renderMemos(); }
+
+function renderHighlightOptions(){
+  const el=document.getElementById('highlight-options');
+  el.innerHTML='';
+  const visited=Object.entries(checkedIn).filter(([k,v])=>v);
+  if(!visited.length){
+    el.innerHTML='<div style="font-size:12px;color:var(--muted);">スナックにチェックインするとここに表示されます</div>';
+    return;
+  }
+  visited.forEach(([id])=>{
+    const [dest,i]=id.split('_');
+    const s=SNACK_DATA[dest]?.[parseInt(i)];
+    if(!s)return;
+    const btn=document.createElement('button');
+    btn.style='width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;padding:9px 12px;color:var(--text);font-size:13px;text-align:left;cursor:pointer;transition:all 0.2s;font-family:inherit;';
+    btn.textContent='🍶 '+s.name;
+    btn.onclick=()=>{
+      document.querySelectorAll('#highlight-options button').forEach(b=>{
+        b.style.background='rgba(255,255,255,0.04)';
+        b.style.borderColor='var(--border)';
+      });
+      btn.style.background='rgba(78,205,196,0.15)';
+      btn.style.borderColor='var(--teal)';
+    };
+    el.appendChild(btn);
+  });
+}
+
+function setRating(n){
+  rating=n;
+  document.querySelectorAll('.star').forEach((s,i)=>s.classList.toggle('on',i<n));
+  const msg=document.getElementById('rating-msg');
+  msg.textContent=RATING_MSGS[n];
+  msg.style.display='block';
+}
+
+// Clock & Countdown
+function updateClock(){
+  const now=new Date();
+  const pad=n=>n.toString().padStart(2,'0');
+  document.getElementById('clock-display').textContent=pad(now.getHours())+':'+pad(now.getMinutes())+':'+pad(now.getSeconds());
+
+  if(countdownTarget){
+    let diff=Math.floor((countdownTarget-now)/1000);
+    if(diff<0){
+      document.getElementById('countdown-display').textContent='時間です！';
+      document.getElementById('countdown-display').style.color='var(--accent)';
+    } else {
+      const h=Math.floor(diff/3600);
+      const m=Math.floor((diff%3600)/60);
+      const s=diff%60;
+      document.getElementById('countdown-display').textContent=pad(h)+':'+pad(m)+':'+pad(s);
+      document.getElementById('countdown-display').style.color=diff<1800?'var(--accent)':'var(--teal)';
+    }
+  }
+}
+
+// init
+setPeople(3);
+updateBudget();
+renderMemos();
+setInterval(updateClock, 1000);
+updateClock();
+</script>
+</body>
+</html>
