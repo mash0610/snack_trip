@@ -452,10 +452,10 @@ const LINES = {
     name: '山陽本線',
     stations: [
       { id:'okayama', name:'岡山', emoji:'🏙️', fare:0, fareLabel:'起点', time:'0分', alarm:'', trainInfo:null },
-      { id:'higashiokayama', name:'東岡山', emoji:'🚉', fare:240, fareLabel:'往復¥480', time:'8分', alarm:'', trainInfo:null },
-      { id:'saidaiji', name:'西大寺', emoji:'🏮', fare:330, fareLabel:'往復¥660', time:'15分', alarm:'', trainInfo:null },
-      { id:'bizen_imbe', name:'備前片上', emoji:'🏭', fare:590, fareLabel:'往復¥1,180', time:'30分', alarm:'', trainInfo:null },
-      { id:'aioi', name:'相生', emoji:'🚉', fare:990, fareLabel:'往復¥1,980', time:'50分', alarm:'22:40', trainInfo:{lines:['🚃 山陽本線（相生→岡山）最終 23:08'], taxi:'¥8,000〜12,000（4人割 ¥2,000〜3,000）'} },
+      { id:'higashiokayama', name:'東岡山', emoji:'🚉', fare:200, fareLabel:'往復¥400', time:'8分', alarm:'', trainInfo:null },
+      { id:'saidaiji', name:'西大寺', emoji:'🏮', fare:240, fareLabel:'往復¥480', time:'15分', alarm:'', trainInfo:null },
+      { id:'bizen_imbe', name:'備前片上', emoji:'🏭', fare:680, fareLabel:'往復¥1,360', time:'30分', alarm:'', trainInfo:null },
+      { id:'aioi', name:'相生', emoji:'🚉', fare:1170, fareLabel:'往復¥2,340', time:'50分', alarm:'22:40', trainInfo:{lines:['🚃 山陽本線（相生→岡山）最終 23:08'], taxi:'¥8,000〜12,000（4人割 ¥2,000〜3,000）'} },
       { id:'himeji', name:'姫路', emoji:'🏯', fare:1520, fareLabel:'往復¥3,040', time:'約55分', alarm:'22:30', trainInfo:{lines:['🚄 こだま（姫路→岡山） 23:06','🚃 山陽本線 快速（最終） 22:52'], taxi:'¥20,000〜25,000（4人割 ¥5,000〜6,300）'} },
     ]
   },
@@ -463,23 +463,23 @@ const LINES = {
     name: '山陽本線（西）',
     stations: [
       { id:'okayama', name:'岡山', emoji:'🏙️', fare:0, fareLabel:'起点', time:'0分', alarm:'', trainInfo:null },
-      { id:'niigata', name:'庭瀬', emoji:'🚉', fare:190, fareLabel:'往復¥380', time:'6分', alarm:'', trainInfo:null },
+      { id:'niigata', name:'庭瀬', emoji:'🚉', fare:200, fareLabel:'往復¥400', time:'6分', alarm:'', trainInfo:null },
       { id:'takahashi', name:'中庄', emoji:'🚉', fare:240, fareLabel:'往復¥480', time:'10分', alarm:'', trainInfo:null },
       { id:'kurashiki', name:'倉敷', emoji:'🏭', fare:330, fareLabel:'往復¥660', time:'15分', alarm:'22:50', trainInfo:{lines:['🚃 山陽本線（倉敷→岡山）最終 23:20'], taxi:'¥4,000〜6,000（4人割 ¥1,000〜1,500）'} },
-      { id:'shin_kurashiki', name:'新倉敷', emoji:'🚉', fare:480, fareLabel:'往復¥960', time:'22分', alarm:'22:45', trainInfo:{lines:['🚃 山陽本線（新倉敷→岡山）最終 23:10'], taxi:'¥6,000〜9,000（4人割 ¥1,500〜2,300）'} },
-      { id:'kasaoka', name:'笠岡', emoji:'🌸', fare:740, fareLabel:'往復¥1,480', time:'35分', alarm:'22:30', trainInfo:{lines:['🚃 山陽本線（笠岡→岡山）最終 22:58'], taxi:'¥10,000〜14,000（4人割 ¥2,500〜3,500）'} },
-      { id:'fukuyama', name:'福山', emoji:'🌹', fare:1320, fareLabel:'往復¥2,640', time:'約40分', alarm:'22:10', trainInfo:{lines:['🚄 こだま（福山→岡山） 23:14','🚃 山陽本線（最終） 22:42'], taxi:'¥15,000〜18,000（4人割 ¥3,800〜4,500）'} },
+      { id:'shin_kurashiki', name:'新倉敷', emoji:'🚉', fare:510, fareLabel:'往復¥1,020', time:'22分', alarm:'22:45', trainInfo:{lines:['🚃 山陽本線（新倉敷→岡山）最終 23:10'], taxi:'¥6,000〜9,000（4人割 ¥1,500〜2,300）'} },
+      { id:'kasaoka', name:'笠岡', emoji:'🌸', fare:770, fareLabel:'往復¥1,540', time:'35分', alarm:'22:30', trainInfo:{lines:['🚃 山陽本線（笠岡→岡山）最終 22:58'], taxi:'¥10,000〜14,000（4人割 ¥2,500〜3,500）'} },
+      { id:'fukuyama', name:'福山', emoji:'🌹', fare:990, fareLabel:'往復¥1,980', time:'約40分', alarm:'22:10', trainInfo:{lines:['🚄 こだま（福山→岡山） 23:14','🚃 山陽本線（最終） 22:42'], taxi:'¥15,000〜18,000（4人割 ¥3,800〜4,500）'} },
     ]
   },
   marine: {
     name: 'マリンライナー',
     stations: [
       { id:'okayama', name:'岡山', emoji:'🏙️', fare:0, fareLabel:'起点', time:'0分', alarm:'', trainInfo:null },
-      { id:'kojima', name:'児島', emoji:'🌉', fare:580, fareLabel:'往復¥1,160', time:'25分', alarm:'22:50', trainInfo:{lines:['🚢 マリンライナー（児島→岡山）最終 23:18'], taxi:'¥7,000〜10,000（4人割 ¥1,800〜2,500）'} },
-      { id:'utazu', name:'宇多津', emoji:'⛩️', fare:840, fareLabel:'往復¥1,680', time:'35分', alarm:'22:40', trainInfo:{lines:['🚢 マリンライナー（宇多津→岡山）最終 23:05'], taxi:'¥10,000〜14,000（4人割 ¥2,500〜3,500）'} },
-      { id:'marugame', name:'丸亀', emoji:'🏯', fare:840, fareLabel:'往復¥1,680', time:'38分', alarm:'22:35', trainInfo:{lines:['🚢 マリンライナー（丸亀→岡山）最終 23:02'], taxi:'¥11,000〜15,000（4人割 ¥2,800〜3,800）'} },
-      { id:'tadotsu', name:'多度津', emoji:'⛵', fare:840, fareLabel:'往復¥1,680', time:'42分', alarm:'22:30', trainInfo:{lines:['🚢 マリンライナー（多度津→岡山）最終 22:58'], taxi:'¥12,000〜16,000（4人割 ¥3,000〜4,000）'} },
-      { id:'takamatsu', name:'高松', emoji:'🌊', fare:1680, fareLabel:'往復¥3,360', time:'約60分', alarm:'21:50', trainInfo:{lines:['🚢 マリンライナー（高松→岡山）最終 22:38','🚃 高松→児島 23:10（児島でタクシー）'], taxi:'高松→岡山は非現実的。終電厳守！'} },
+      { id:'kojima', name:'児島', emoji:'🌉', fare:510, fareLabel:'往復¥1,020', time:'25分', alarm:'22:50', trainInfo:{lines:['🚢 マリンライナー（児島→岡山）最終 23:18'], taxi:'¥7,000〜10,000（4人割 ¥1,800〜2,500）'} },
+      { id:'utazu', name:'宇多津', emoji:'⛩️', fare:1830, fareLabel:'往復¥3,660', time:'35分', alarm:'22:40', trainInfo:{lines:['🚢 マリンライナー（宇多津→岡山）最終 23:05'], taxi:'¥10,000〜14,000（4人割 ¥2,500〜3,500）'} },
+      { id:'marugame', name:'丸亀', emoji:'🏯', fare:1840, fareLabel:'往復¥3,680', time:'38分', alarm:'22:35', trainInfo:{lines:['🚢 マリンライナー（丸亀→岡山）最終 23:02'], taxi:'¥11,000〜15,000（4人割 ¥2,800〜3,800）'} },
+      { id:'tadotsu', name:'多度津', emoji:'⛵', fare:2410, fareLabel:'往復¥4,820', time:'42分', alarm:'22:30', trainInfo:{lines:['🚢 マリンライナー（多度津→岡山）最終 22:58'], taxi:'¥12,000〜16,000（4人割 ¥3,000〜4,000）'} },
+      { id:'takamatsu', name:'高松', emoji:'🌊', fare:1660, fareLabel:'往復¥3,320', time:'約60分', alarm:'21:50', trainInfo:{lines:['🚢 マリンライナー（高松→岡山）最終 22:38','🚃 高松→児島 23:10（児島でタクシー）'], taxi:'高松→岡山は非現実的。終電厳守！'} },
     ]
   }
 };
